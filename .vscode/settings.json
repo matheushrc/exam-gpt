@@ -1,0 +1,5 @@
+{
+  "djlint.useVenv": true,
+  "djlint.configuration": "pyproject.toml",
+  "djlint.useEditorIndentation": false
+}

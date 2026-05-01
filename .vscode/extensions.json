@@ -1,0 +1,13 @@
+{
+  "recommendations": [
+    "astral-sh.ty",
+    "charliermarsh.ruff",
+    "monosans.djlint",
+    "tamasfe.even-better-toml",
+    "qwtel.sqlite-viewer",
+    "pkief.material-icon-theme",
+    "usernamehw.errorlens",
+    "magicstack.magicpython",
+    "christian-kohler.path-intellisense"
+  ]
+}
