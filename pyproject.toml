@@ -13,6 +13,7 @@ dependencies = [
     "pydantic>=2.13.3",
     "pydantic-ai-slim[google]>=1.89.0",
     "ruff>=0.15.12",
+    "sqlite-vec>=0.1.9",
     "ty>=0.0.33",
     "whitenoise>=6.12.0",
 ]

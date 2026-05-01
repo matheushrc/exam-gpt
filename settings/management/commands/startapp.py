@@ -6,7 +6,7 @@ from django.core.management.commands.startapp import Command as BaseCommand
 
 
 class Command(BaseCommand):
-    def handle(self, **options):
+    def handle(self, **options) -> None:
         super().handle(**options)
 
         app_name = options["name"]
@@ -32,14 +32,14 @@ class Command(BaseCommand):
 
         # Ensure every parent package has an __init__.py
         for parent in app_dir.parents:
-            if parent == Path("."):
+            if parent == Path():
                 break
             init = parent / "__init__.py"
             if not init.exists():
                 init.touch()
 
         settings_path = Path(
-            os.environ["DJANGO_SETTINGS_MODULE"].replace(".", "/") + ".py"
+            os.environ["DJANGO_SETTINGS_MODULE"].replace(".", "/") + ".py",
         )
         text = settings_path.read_text()
 
