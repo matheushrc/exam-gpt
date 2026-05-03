@@ -30,15 +30,16 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    "django.contrib.admin",
-    "django.contrib.auth",
-    "django.contrib.contenttypes",
+    "settings.apps.MongoAdminConfig",
+    "settings.apps.MongoAuthConfig",
+    "settings.apps.MongoContentTypesConfig",
     "django.contrib.sessions",
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "django_browser_reload",
     "django_watchfiles",
-    "settings",
+    "settings.apps.SettingsConfig",
+    "apps.upload",
 ]
 
 MIDDLEWARE = [
@@ -49,6 +50,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django_browser_reload.middleware.BrowserReloadMiddleware",
 ]
 
@@ -75,11 +77,24 @@ WSGI_APPLICATION = "settings.wsgi.application"
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
+DEFAULT_AUTO_FIELD = "django_mongodb_backend.fields.ObjectIdAutoField"
+
+DATABASE_ROUTERS = ["django_mongodb_backend.routers.MongoRouter"]
+
+MIGRATION_MODULES = {
+    "admin": "settings.migrations.admin",
+    "auth": "settings.migrations.auth",
+    "contenttypes": "settings.migrations.contenttypes",
+    "settings": None,
+}
+
+
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.sqlite3",
-        "NAME": BASE_DIR / "db.sqlite3",
-    },
+        "ENGINE": "django_mongodb_backend",
+        "HOST": "mongodb://localhost:27017/",
+        "NAME": "exam_gpt",
+    }
 }
 
 
