@@ -5,13 +5,16 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.14.3"
 dependencies = [
+    "beautifulsoup4>=4.14.3",
     "django>=6.0.3",
     "django-browser-reload>=1.21.0",
+    "django-mongodb-backend>=6.0.3",
     "django-watchfiles>=1.4.0",
     "djlint>=1.36.4",
     "loguru>=0.7.3",
     "pydantic>=2.13.3",
     "pydantic-ai-slim[google]>=1.89.0",
+    "requests>=2.33.1",
     "ruff>=0.15.12",
     "sqlite-vec>=0.1.9",
     "ty>=0.0.33",
@@ -34,4 +37,7 @@ line_break_after_tag = "div,section"
 indent = 4
 
 [dependency-groups]
-dev = ["django-stubs>=6.0.3"]
+dev = [
+    "django-stubs>=6.0.3",
+    "ipykernel>=7.2.0",
+]
