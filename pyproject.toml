@@ -10,7 +10,9 @@ dependencies = [
     "django-browser-reload>=1.21.0",
     "django-mongodb-backend>=6.0.3",
     "django-watchfiles>=1.4.0",
+    "djangorestframework>=3.17.1",
     "djlint>=1.36.4",
+    "drf-spectacular>=0.29.0",
     "loguru>=0.7.3",
     "pydantic>=2.13.3",
     "pydantic-ai-slim[google]>=1.89.0",
@@ -40,4 +42,5 @@ indent = 4
 dev = [
     "django-stubs>=6.0.3",
     "ipykernel>=7.2.0",
+    "python-dotenv>=1.2.2",
 ]
