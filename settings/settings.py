@@ -45,7 +45,6 @@ INSTALLED_APPS = [
     "django_watchfiles",
     "rest_framework",
     "drf_spectacular",
-    "apps.core",
     "apps.schedule",
 ]
 
