@@ -95,11 +95,15 @@ MIGRATION_MODULES = {
 }
 
 
+_mongo_host = os.environ.get("MONGO_HOST", "localhost")
+_mongo_port = os.environ.get("MONGO_PORT", "27017")
+_mongo_db = os.environ.get("MONGO_DB", "exam_gpt")
+
 DATABASES = {
     "default": {
         "ENGINE": "django_mongodb_backend",
-        "HOST": "mongodb://localhost:27017/",
-        "NAME": "exam_gpt",
+        "HOST": f"mongodb://{_mongo_host}:{_mongo_port}/",
+        "NAME": _mongo_db,
     }
 }
 
@@ -149,4 +153,6 @@ SPECTACULAR_SETTINGS = {
     "DESCRIPTION": "API for fetching UFFS schedule data",
     "VERSION": "1.0.0",
     "SORT_OPERATION_PARAMETERS": False,
+    "SCHEMA_PATH_PREFIX": r"/api",
+    "SCHEMA_PATH_PREFIX_TRIM": True,
 }
