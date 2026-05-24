@@ -95,7 +95,7 @@ MIGRATION_MODULES = {
 }
 
 
-_mongo_host = os.environ.get("MONGO_HOST", "mongo")
+_mongo_host = os.environ.get("MONGO_HOST", "localhost")
 _mongo_port = os.environ.get("MONGO_PORT", "27017")
 _mongo_db = os.environ.get("MONGO_DB", "exam_gpt")
 
