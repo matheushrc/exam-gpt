@@ -1,6 +1,7 @@
 from django.db.models import (
     CASCADE,
     DO_NOTHING,
+    CharField,
     DateField,
     FloatField,
     ForeignKey,
@@ -48,7 +49,7 @@ class Prova(Model):
     cursos = JSONField()
     materia = TextField()
     ano = IntegerField()
-    semestre = IntegerField()
+    semestre = CharField(max_length=6)
     data_aplicacao = DateField()
     numero_avaliacao = IntegerField()
     questoes = ForeignKey(
