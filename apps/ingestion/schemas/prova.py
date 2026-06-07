@@ -15,7 +15,8 @@ Semestre = Annotated[int, AfterValidator(validate_semestre)]
 
 class QuestaoBase(BaseModel):
     enunciado: str = Field(
-        description="Texto completo da questão, incluindo expressões matemáticas em LaTeX inline ($...$).",
+        description="Texto completo da questão em Markdown.",
+        examples=["**Alice** afirma que o protocolo _X_ é ineficiente. **Alice está certa?** Justifique."],
     )
     pontuacao: float = Field(
         description="Pontuação da questão.",
@@ -23,7 +24,7 @@ class QuestaoBase(BaseModel):
         ge=0.0,
     )
     resposta: str | None = Field(
-        description="Resposta completa da questão, incluindo explicações e expressões matemáticas em LaTeX inline ($...$).",
+        description="Resposta do aluno em Markdown. Null se em branco ou ilegível.",
         default=None,
     )
 
