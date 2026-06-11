@@ -1,3 +1,3 @@
-from apps.ingestion.prompts.exam import EXAM_PROMPT
+from apps.ingestion.prompts.prova import EXAM_PROMPT
 
 __all__ = ["EXAM_PROMPT"]

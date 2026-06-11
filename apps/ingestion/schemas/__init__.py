@@ -1,3 +1,3 @@
-from apps.ingestion.models.prova import Prova
+from apps.ingestion.schemas.prova import Prova
 
 __all__ = ["Prova"]

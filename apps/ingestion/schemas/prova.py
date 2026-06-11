@@ -16,7 +16,9 @@ Semestre = Annotated[int, AfterValidator(validate_semestre)]
 class QuestaoBase(BaseModel):
     enunciado: str = Field(
         description="Texto completo da questão em Markdown.",
-        examples=["**Alice** afirma que o protocolo _X_ é ineficiente. **Alice está certa?** Justifique."],
+        examples=[
+            "**Alice** afirma que o protocolo _X_ é ineficiente. **Alice está certa?** Justifique."
+        ],
     )
     pontuacao: float = Field(
         description="Pontuação da questão.",
@@ -24,7 +26,7 @@ class QuestaoBase(BaseModel):
         ge=0.0,
     )
     resposta: str | None = Field(
-        description="Resposta do aluno em Markdown. Null se em branco ou ilegível.",
+        description="Resposta do aluno em Markdown. Null se em branco.",
         default=None,
     )
 
@@ -62,6 +64,8 @@ class Prova(BaseModel):
         description="Semestre de aplicação: 1 para primeiro semestre, 2 para segundo semestre.",
         examples=[1, 2],
     )
+    # TODO Converter ano e semestre em float (e.g., 2024.1, 2024.2) para facilitar ordenação e comparação. ano_semestre: float
+
     data_aplicacao: date = Field(
         description="Data de aplicação da prova.",
         examples=["2024-03-15", "2023-11-02"],
@@ -71,6 +75,9 @@ class Prova(BaseModel):
         examples=[1, 2, 3],
         ge=1,
     )
+
+    # recuperacao: bool = Field()
+
     questoes: list[Questao] = Field(
         description="Lista de questões da prova, na ordem em que aparecem.",
     )

@@ -66,7 +66,7 @@ class InferenceCreate(BaseModel):
         return self
 
 
-class BedrockAgent:
+class GoogleAgent:
     def __init__(
         self,
         api_key: str,
@@ -149,8 +149,8 @@ class BedrockAgent:
 
     async def get_inference_async(
         self,
-        user_prompt: str,
         agent: Agent,
+        user_prompt: str = "",
         image_content: bytes | list[bytes] | None = None,
         image_media_type: str = "image/jpeg",
         message_history: list[Any] | None = None,
