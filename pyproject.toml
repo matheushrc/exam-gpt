@@ -17,6 +17,7 @@ dependencies = [
     "numpy>=2.4.6",
     "pydantic>=2.13.3",
     "pydantic-ai-slim[google,openai]>=1.89.0",
+    "pydantic-settings>=2.14.1",
     "requests>=2.33.1",
     "ruff>=0.15.12",
     "sqlite-vec>=0.1.9",
