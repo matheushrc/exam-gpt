@@ -294,3 +294,6 @@ pip-selfcheck.json
 
 .playwright-mcp/
 data/
+misc/
+.claude
+.agents

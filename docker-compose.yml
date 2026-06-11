@@ -29,6 +29,28 @@ services:
     networks:
       - internal
     restart: unless-stopped
+    develop:
+      watch:
+        - action: sync
+          path: ./apps
+          target: /app/apps
+        - action: sync
+          path: ./settings
+          target: /app/settings
+        - action: sync
+          path: ./templates
+          target: /app/templates
+        - action: sync
+          path: ./manage.py
+          target: /app/manage.py
+        - action: sync
+          path: ./mongo_migrations
+          target: /app/mongo_migrations
+        - action: rebuild
+          path: ./pyproject.toml
+        - action: rebuild
+          path: ./uv.lock
+
 
 networks:
   internal:
