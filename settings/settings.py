@@ -46,7 +46,7 @@ INSTALLED_APPS = [
     "rest_framework",
     "drf_spectacular",
     "apps.schedule",
-    "apps.ingestion",
+    "apps.rag_ingestion",
 ]
 
 MIDDLEWARE = [

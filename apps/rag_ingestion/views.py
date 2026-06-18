@@ -5,10 +5,10 @@ import os
 from dotenv import load_dotenv
 from pydantic_ai.agent import Agent
 
-from apps.ingestion.agents.Google import GoogleAgent
-from apps.ingestion.schemas import Prova
-from apps.ingestion.prompts import EXAM_PROMPT
-from apps.ingestion.utils import load_images_from_folder
+from apps.rag_ingestion.agents.Google import GoogleAgent
+from apps.rag_ingestion.schemas import Prova
+from apps.rag_ingestion.prompts import EXAM_PROMPT
+from apps.rag_ingestion.utils import load_images_from_folder
 
 load_dotenv()
 

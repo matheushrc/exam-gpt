@@ -35,7 +35,7 @@ class Migration(migrations.Migration):
                 ('semestre', models.IntegerField()),
                 ('data_aplicacao', models.DateField()),
                 ('numero_avaliacao', models.IntegerField()),
-                ('questoes', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to='ingestion.questao')),
+                ('questoes', models.ForeignKey(on_delete=django.db.models.deletion.DO_NOTHING, to='rag_ingestion.questao')),
             ],
         ),
         migrations.CreateModel(
@@ -43,7 +43,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', django_mongodb_backend.fields.ObjectIdAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('question_embedding', django_mongodb_backend.fields.ArrayField(base_field=models.FloatField(), blank=True, null=True, size=768)),
-                ('id_questao', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='ingestion.questao')),
+                ('id_questao', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='rag_ingestion.questao')),
             ],
         ),
     ]

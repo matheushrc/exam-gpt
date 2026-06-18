@@ -16,8 +16,8 @@ django.setup()
 from google import genai
 from google.genai import types
 
-from apps.ingestion.models import Chunks, Prova, Questao
-from apps.ingestion.settings import embeddings_settings
+from apps.rag_ingestion.models import Chunks, Prova, Questao
+from apps.rag_ingestion.settings import embeddings_settings
 
 GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
 if not GOOGLE_API_KEY:
