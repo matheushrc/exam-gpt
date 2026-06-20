@@ -37,7 +37,7 @@ def get_schedule(semester: str, group: int) -> list[dict]:
 
 
 class IndexView(TemplateView):
-    template_name = "index.html"
+    template_name = "chat.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)

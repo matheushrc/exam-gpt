@@ -18,7 +18,7 @@ Including another URLconf
 
 from django.urls import path
 
-from apps.schedule.views import GroupsView, IndexView, ScheduleView, SemestersView
+from apps.chat.views import GroupsView, IndexView, ScheduleView, SemestersView
 
 urlpatterns = [
     path(route="", view=IndexView.as_view(), name="index"),

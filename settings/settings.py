@@ -45,7 +45,7 @@ INSTALLED_APPS = [
     "django_watchfiles",
     "rest_framework",
     "drf_spectacular",
-    "apps.schedule",
+    "apps.chat",
     "apps.rag_ingestion",
     "apps.rag_search",
 ]
