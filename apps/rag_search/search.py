@@ -54,7 +54,7 @@ def search(
     allowlist_arr = None
     if materia:
         allowed_indices = list(
-            Chunks.objects.filter(id_questao__prova__materia=materia)
+            Chunks.objects.filter(id_questao__provas__materia=materia)
             .exclude(turbo_id=None)
             .values_list("turbo_id", flat=True)
         )

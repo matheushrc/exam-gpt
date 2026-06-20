@@ -2,7 +2,9 @@
 import json
 import os
 import sys
+from dataclasses import dataclass
 from pathlib import Path
+from typing import Any
 
 import django
 import numpy as np
@@ -19,22 +21,47 @@ from google.genai import types
 from apps.rag_ingestion.models import Chunks, Prova, Questao
 from apps.rag_ingestion.settings import embeddings_settings
 
-GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY")
-if not GOOGLE_API_KEY:
-    raise ValueError("GOOGLE_API_KEY environment variable not set.")
-
-client = genai.Client(api_key=GOOGLE_API_KEY)
-
-JSON_PATH = PROJECT_ROOT / "input" / "provas" / "redes-de-computadores" / "redes.json"
+DEFAULT_JSON_ROOT = PROJECT_ROOT / "input" / "converted_provas"
 INDEX_PATH = Path(embeddings_settings.INDEX_PATH)
 EMBEDDING_MODEL = embeddings_settings.EMBEDDING_MODEL
 EMBEDDING_DIMS = embeddings_settings.EMBEDDING_DIMS
 
 
+@dataclass(frozen=True)
+class IngestionResult:
+    provas: int
+    questoes: int
+    chunks: int
+    index_path: Path
+
+
+def get_client() -> genai.Client:
+    google_api_key = os.environ.get("GOOGLE_API_KEY")
+    if not google_api_key:
+        raise ValueError("GOOGLE_API_KEY environment variable not set.")
+    return genai.Client(api_key=google_api_key)
+
+
+def find_exam_json_files(json_root: Path) -> list[Path]:
+    if json_root.is_file():
+        return [json_root]
+    if not json_root.exists():
+        raise FileNotFoundError(f"JSON root does not exist: {json_root}")
+    return sorted(path for path in json_root.rglob("*.json") if path.is_file())
+
+
+def load_exam_json(path: Path) -> dict[str, Any]:
+    with path.open(encoding="utf-8") as f:
+        data = json.load(f)
+    if "questoes" not in data or not isinstance(data["questoes"], list):
+        raise ValueError(f"Exam JSON has no questoes list: {path}")
+    return data
+
+
 def format_subquestoes(subquestoes: list | None) -> str:
     if not subquestoes:
         return ""
-    return "\n".join(f"{s['label']}) {s['enunciado']} " for s in subquestoes)
+    return "\n".join(f"{s['label']} {s['enunciado']}" for s in subquestoes)
 
 
 def build_chunk(
@@ -49,13 +76,15 @@ def build_chunk(
     sub_text = format_subquestoes(subquestoes)
     if sub_text:
         parts.append(sub_text)
-    # Inclui a resposta/gabarito se disponível para melhorar a semântica na busca
     if resposta:
         parts.append(f"Gabarito/Resposta esperada: {resposta}")
     return "\n".join(parts)
 
 
-def get_embeddings_batch(texts: list[str]) -> list[list[float]]:
+def get_embeddings_batch(client: genai.Client, texts: list[str]) -> list[list[float]]:
+    if not texts:
+        return []
+
     contents = [types.Content(parts=[types.Part.from_text(text=t)]) for t in texts]
     response = client.models.embed_content(
         model=EMBEDDING_MODEL,
@@ -71,85 +100,103 @@ def get_embeddings_batch(texts: list[str]) -> list[list[float]]:
     return embeddings
 
 
-def main() -> None:
-    with JSON_PATH.open(encoding="utf-8") as f:
-        data = json.load(f)
-
-    questoes_criadas = []
-    chunk_texts = []
-    questoes_objs = []
-
-    # 1. Cria ou atualiza as questões no Django
-    for q_data in data["questoes"]:
-        questao, q_created = Questao.objects.update_or_create(
-            numero=q_data["numero"],
-            enunciado=q_data["enunciado"],
-            defaults={
-                "subquestoes": q_data["subquestoes"] or [],
-                "resposta": q_data.get("resposta"),
-                "pontuacao": q_data.get("pontuacao"),
-            },
-        )
-        questoes_criadas.append(questao)
-        questoes_objs.append(questao)
-
-        chunk_text = build_chunk(
-            materia=data["materia"],
-            numero=q_data["numero"],
-            enunciado=q_data["enunciado"],
-            subquestoes=q_data["subquestoes"],
-            resposta=q_data.get("resposta"),
-        )
-        chunk_texts.append(chunk_text)
-
-    # 2. Ingestão paralela/lote: Uma única requisição HTTP para a API de embeddings
-    print(
-        f"Gerando embeddings em lote para {len(chunk_texts)} questões...",
-        end=" ",
-        flush=True,
-    )
-    embeddings = get_embeddings_batch(chunk_texts)
-    print("ok")
-
-    # 3. Reconstrói o índice Turbovec e salva em Mongo apenas o ID numérico do vetor.
-    if embeddings:
-        all_vectors = np.array(embeddings, dtype=np.float32)
-        turbo_ids = np.arange(len(all_vectors), dtype=np.uint64)
-
-        index = IdMapIndex(dim=EMBEDDING_DIMS, bit_width=4)
-        index.add_with_ids(all_vectors, turbo_ids)
-
-        INDEX_PATH.parent.mkdir(parents=True, exist_ok=True)
-        index.write(str(INDEX_PATH))
-
-        for questao, turbo_id in zip(questoes_objs, turbo_ids):
-            Chunks.objects.update_or_create(
-                id_questao=questao,
-                defaults={"turbo_id": int(turbo_id)},
-            )
-
-        print("Índice vetorial salvo e chunks vinculados aos IDs Turbovec!")
-
-    # Prova.questoes logic
-    prova, p_created = Prova.objects.update_or_create(
+def upsert_exam(data: dict[str, Any]) -> tuple[Prova, list[Questao], list[str]]:
+    prova, _ = Prova.objects.update_or_create(
         materia=data["materia"],
         ano=data["ano"],
         semestre=str(data["semestre"]),
         numero_avaliacao=data["numero_avaliacao"],
         defaults={
             "professor": data["professor"],
-            "cursos": data["cursos"],
+            "cursos": data.get("cursos") or [],
             "data_aplicacao": data["data_aplicacao"],
-            "questoes": questoes_criadas[0],
         },
     )
 
-    p_action = "criada" if p_created else "atualizada"
-    print(
-        f"\nProva {p_action}: {prova.materia} {prova.ano}.{prova.semestre} (id={prova.pk})"
+    questoes: list[Questao] = []
+    chunk_texts: list[str] = []
+    for q_data in data["questoes"]:
+        questao, _ = Questao.objects.update_or_create(
+            numero=q_data["numero"],
+            enunciado=q_data["enunciado"],
+            defaults={
+                "subquestoes": q_data.get("subquestoes") or [],
+                "resposta": q_data.get("resposta"),
+                "pontuacao": q_data.get("pontuacao"),
+            },
+        )
+        questoes.append(questao)
+        chunk_texts.append(
+            build_chunk(
+                materia=data["materia"],
+                numero=q_data["numero"],
+                enunciado=q_data["enunciado"],
+                subquestoes=q_data.get("subquestoes"),
+                resposta=q_data.get("resposta"),
+            )
+        )
+
+    prova.questoes.set(questoes)
+    return prova, questoes, chunk_texts
+
+
+def rebuild_vector_index(
+    questoes: list[Questao],
+    embeddings: list[list[float]],
+    *,
+    index_path: Path = INDEX_PATH,
+) -> int:
+    Chunks.objects.all().delete()
+    if not embeddings:
+        if index_path.exists():
+            index_path.unlink()
+        return 0
+
+    all_vectors = np.array(embeddings, dtype=np.float32)
+    turbo_ids = np.arange(len(all_vectors), dtype=np.uint64)
+
+    index = IdMapIndex(dim=EMBEDDING_DIMS, bit_width=4)
+    index.add_with_ids(all_vectors, turbo_ids)
+
+    index_path.parent.mkdir(parents=True, exist_ok=True)
+    index.write(str(index_path))
+
+    for questao, turbo_id in zip(questoes, turbo_ids):
+        Chunks.objects.update_or_create(
+            id_questao=questao,
+            defaults={"turbo_id": int(turbo_id)},
+        )
+
+    return len(turbo_ids)
+
+
+def seed_exam_jsons(
+    json_root: Path = DEFAULT_JSON_ROOT,
+    *,
+    client: genai.Client | None = None,
+) -> IngestionResult:
+    json_files = find_exam_json_files(json_root)
+    if not json_files:
+        raise ValueError(f"No exam JSON files found under {json_root}")
+
+    embedding_client = client or get_client()
+    all_questoes: list[Questao] = []
+    all_chunk_texts: list[str] = []
+
+    for json_file in json_files:
+        data = load_exam_json(json_file)
+        prova, questoes, chunk_texts = upsert_exam(data)
+        all_questoes.extend(questoes)
+        all_chunk_texts.extend(chunk_texts)
+        print(f"Loaded {json_file.relative_to(PROJECT_ROOT)} -> {prova.materia}")
+
+    print(f"Generating embeddings for {len(all_chunk_texts)} questions...", flush=True)
+    embeddings = get_embeddings_batch(embedding_client, all_chunk_texts)
+    chunks = rebuild_vector_index(all_questoes, embeddings)
+
+    return IngestionResult(
+        provas=len(json_files),
+        questoes=len(all_questoes),
+        chunks=chunks,
+        index_path=INDEX_PATH,
     )
-    print(f"Concluído: {len(questoes_criadas)} questões processadas.")
-
-
-if __name__ == "__main__":
-    main()

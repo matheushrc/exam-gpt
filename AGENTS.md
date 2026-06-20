@@ -29,6 +29,26 @@ Local execution expects environment variables such as `SECRET_KEY`,
 `GOOGLE_API_KEY`, `HORARIO_ENDPOINT`, `GROUPS_ENDPOINT`, and Mongo settings when
 not using the defaults in `docker-compose.yml`.
 
+## Operational Commands
+
+Use only the commands needed for the task at hand:
+
+- `uv sync`: install dependencies.
+- `cp .env.example .env`: create a local env file, then fill `SECRET_KEY`,
+  `GOOGLE_API_KEY`, `PORT`, and Mongo settings as needed.
+- `docker compose up --build`: run the app with MongoDB.
+- `docker compose up mongo`: run only MongoDB for local Django commands.
+- `uv run python manage.py migrate`: apply migrations.
+- `PYTHONPATH=/home/matheus/Documents/Faculdade/provas-gpt uv run python get_exam_json.py`: convert raw exam images from `input/provas` into JSON files in `input/converted_provas`.
+- `GOOGLE_API_KEY="your-google-api-key" uv run python apps/rag_ingestion/seed_exams.py`: seed converted exams and rebuild `indexes/index.tvim`.
+- `uv run python manage.py runserver`: run Django locally when MongoDB is already available.
+- `uv run python manage.py test`: run tests.
+- `uv run ruff check .`: lint Python.
+- `uv run djlint templates apps --check`: check template formatting.
+
+The generated Turbovec vector index is `indexes/index.tvim`; Mongo stores the
+`Chunks.turbo_id` mapping.
+
 ## Coding Style & Naming Conventions
 
 Use Python 3.14+ and Django conventions. Indent Python with 4 spaces, keep module
@@ -56,6 +76,11 @@ linked issues when applicable, and screenshots or API examples for UI/API
 changes. Call out new environment variables, migrations, or data-indexing steps.
 
 ## Agent-Specific Instructions
+
+This project is not in production. Changes do not need to be backward
+compatible unless the user explicitly asks for compatibility. Prefer the clean
+current design over compatibility wrappers, deprecated aliases, or migration
+contortions for old local data.
 
 Do not overwrite generated data, migrations, or prompt files without checking
 their current purpose. Keep changes scoped to the relevant Django app unless a

@@ -1,0 +1,109 @@
+import json
+import tempfile
+from pathlib import Path
+from unittest.mock import patch
+
+from django.test import SimpleTestCase
+from django.test import TestCase
+import numpy as np
+from turbovec import IdMapIndex
+
+from apps.rag_ingestion.models import Chunks, Prova, Questao
+from apps.rag_ingestion.embed import (
+    DEFAULT_JSON_ROOT,
+    build_chunk,
+    find_exam_json_files,
+    load_exam_json,
+)
+from apps.rag_ingestion.vector_index import remove_turbo_ids
+
+
+class ExamJsonDiscoveryTests(SimpleTestCase):
+    def test_find_exam_json_files_recursively(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            nested = root / "redes-de-computadores"
+            nested.mkdir()
+            expected = nested / "2026-05-04_np1_professor.json"
+            expected.write_text("{}", encoding="utf-8")
+            (nested / "ignored.txt").write_text("ignored", encoding="utf-8")
+
+            self.assertEqual(find_exam_json_files(root), [expected])
+
+    def test_default_json_root_uses_converted_provas(self):
+        self.assertEqual(DEFAULT_JSON_ROOT.name, "converted_provas")
+
+    def test_load_exam_json_requires_questoes_list(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            json_path = Path(tmpdir) / "invalid.json"
+            json_path.write_text(json.dumps({"materia": "Redes"}), encoding="utf-8")
+
+            with self.assertRaisesMessage(ValueError, "has no questoes list"):
+                load_exam_json(json_path)
+
+
+class ChunkFormattingTests(SimpleTestCase):
+    def test_build_chunk_includes_subquestions_and_answer(self):
+        chunk = build_chunk(
+            materia="Redes de Computadores",
+            numero=1,
+            enunciado="Explique roteamento.",
+            subquestoes=[{"label": "(a)", "enunciado": "Defina rota."}],
+            resposta="Roteamento escolhe caminhos.",
+        )
+
+        self.assertIn("Redes de Computadores - Questão 1", chunk)
+        self.assertIn("(a) Defina rota.", chunk)
+        self.assertIn("Gabarito/Resposta esperada: Roteamento escolhe caminhos.", chunk)
+
+
+class VectorIndexRemovalTests(SimpleTestCase):
+    def test_remove_turbo_ids_is_noop_without_index_file(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            remove_turbo_ids([1, 2], index_path=Path(tmpdir) / "missing.tvim")
+
+    def test_remove_turbo_ids_removes_ids_from_index(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            index_path = Path(tmpdir) / "index.tvim"
+            index = IdMapIndex(dim=8, bit_width=4)
+            index.add_with_ids(
+                np.ones((2, 8), dtype=np.float32),
+                np.array([10, 11], dtype=np.uint64),
+            )
+            index.write(str(index_path))
+
+            remove_turbo_ids([10], index_path=index_path)
+
+            updated_index = IdMapIndex.load(str(index_path))
+            self.assertFalse(updated_index.contains(10))
+            self.assertTrue(updated_index.contains(11))
+
+
+class ProvaDeleteCleanupTests(TestCase):
+    @patch("apps.rag_ingestion.signals.remove_turbo_ids")
+    def test_delete_prova_removes_orphan_questions_and_chunks(self, remove_mock):
+        questao = Questao.objects.create(
+            numero=1,
+            enunciado="Explique DNS.",
+            subquestoes=[],
+            resposta=None,
+            pontuacao=1.0,
+        )
+        prova = Prova.objects.create(
+            professor="Professor",
+            cursos=[],
+            materia="Redes de Computadores",
+            ano=2026,
+            semestre="1",
+            data_aplicacao="2026-05-04",
+            numero_avaliacao=1,
+        )
+        prova.questoes.add(questao)
+        Chunks.objects.create(id_questao=questao, turbo_id=42)
+
+        prova.delete()
+
+        self.assertEqual(Prova.objects.count(), 0)
+        self.assertEqual(Questao.objects.count(), 0)
+        self.assertEqual(Chunks.objects.count(), 0)
+        remove_mock.assert_called_once_with([42])

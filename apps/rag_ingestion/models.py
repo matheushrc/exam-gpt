@@ -4,7 +4,6 @@ from typing import ClassVar
 
 from django.db.models import (
     CASCADE,
-    DO_NOTHING,
     CharField,
     DateField,
     FloatField,
@@ -12,6 +11,7 @@ from django.db.models import (
     IntegerField,
     JSONField,
     Manager,
+    ManyToManyField,
     Model,
     PositiveIntegerField,
     TextField,
@@ -67,10 +67,7 @@ class Prova(Model):
     semestre = CharField(max_length=6)
     data_aplicacao = DateField()
     numero_avaliacao = IntegerField()
-    questoes = ForeignKey(
-        to=Questao,
-        on_delete=DO_NOTHING,
-    )
+    questoes = ManyToManyField(to=Questao, related_name="provas")
 
     objects = Manager()
 
