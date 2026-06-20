@@ -18,7 +18,13 @@ Including another URLconf
 
 from django.urls import path
 
-from apps.chat.views import GroupsView, IndexView, ScheduleView, SemestersView
+from apps.chat.views import (
+    GroupsView,
+    IndexView,
+    ProfessorsView,
+    ScheduleView,
+    SemestersView,
+)
 
 urlpatterns = [
     path(route="", view=IndexView.as_view(), name="index"),
@@ -33,4 +39,5 @@ urlpatterns = [
         view=ScheduleView.as_view(),
         name="schedule",
     ),
+    path(route="api/professors/", view=ProfessorsView.as_view(), name="professors"),
 ]

@@ -1,39 +1,15 @@
-import bs4
-import requests
 from django.views.generic import TemplateView
 from drf_spectacular.utils import extend_schema
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-HORARIO_ENDPOINT = "https://cc.uffs.edu.br/horario/"
-GROUPS_ENDPOINT = "https://cc.uffs.edu.br/horario/data/{semester}/groups.json"
-SCHEDULE_ENDPOINT = "https://cc.uffs.edu.br/horario/data/{semester}/schedule.json"
-
-
-def get_semesters() -> list[str]:
-    response = requests.get(url=HORARIO_ENDPOINT)
-    soup = bs4.BeautifulSoup(response.text, "html.parser")
-    select = soup.find("select", attrs={"name": "semester", "id": "semester"})
-    return [opt.text for opt in select.find_all("option")] if select else []
-
-
-def get_groups(semester: str) -> list[dict]:
-    response = requests.get(url=GROUPS_ENDPOINT.format(semester=semester))
-    return response.json()
-
-
-def get_schedule(semester: str, group: int) -> list[dict]:
-    response = requests.get(url=SCHEDULE_ENDPOINT.format(semester=semester))
-
-    schedule = [
-        {
-            **schedule,
-        }
-        for schedule in response.json()
-        if schedule["group"] == group
-    ]
-
-    return schedule
+from apps.chat.cache import (
+    get_groups,
+    get_professors_for_materia,
+    get_professors_for_semester,
+    get_schedule,
+    get_semesters,
+)
 
 
 class IndexView(TemplateView):
@@ -70,3 +46,17 @@ class ScheduleView(APIView):
     @extend_schema(responses={200: {"type": "array", "items": {"type": "object"}}})
     def get(self, request, semester: str, group: int):
         return Response(get_schedule(semester, group))
+
+
+class ProfessorsView(APIView):
+    @extend_schema(responses={200: {"type": "array", "items": {"type": "object"}}})
+    def get(self, request):
+        semester = request.query_params.get("semester", "")
+        materia = request.query_params.get("materia", "")
+        if not semester:
+            return Response([], status=200)
+        if materia:
+            professors = get_professors_for_materia(semester, materia)
+        else:
+            professors = get_professors_for_semester(semester)
+        return Response(professors)
