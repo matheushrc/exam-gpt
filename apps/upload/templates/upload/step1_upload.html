@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}
+    Enviar prova
+{% endblock title %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'upload/css/upload.css' %}">
+{% endblock extra_css %}
+{% block content %}
+    <div class="upload-screen">
+        {% if error %}<p class="error-msg">{{ error }}</p>{% endif %}
+        {% csrf_token %}
+        <section class="camera-section">
+            <h2>Tire foto da sua prova agora</h2>
+            <button id="camera-btn" type="button" class="btn-primary">📷 Abrir câmera</button>
+            <div id="camera-preview" hidden>
+                <video id="camera-feed" autoplay playsinline>
+                </video>
+                <button id="capture-btn" type="button" class="btn-secondary">Capturar</button>
+            </div>
+        </section>
+        <section class="file-section">
+            <label class="btn-secondary">
+                Selecionar da galeria / PDF
+                <input type="file"
+                       id="file-input"
+                       name="files"
+                       multiple
+                       accept="image/*,.pdf"
+                       hidden>
+            </label>
+        </section>
+        <div id="preview-grid" class="preview-grid"></div>
+        <button id="upload-submit" type="button" class="btn-primary" disabled>Continuar →</button>
+    </div>
+{% endblock content %}
+{% block extra_js %}
+    <script src="{% static 'upload/js/camera.js' %}"></script>
+{% endblock extra_js %}

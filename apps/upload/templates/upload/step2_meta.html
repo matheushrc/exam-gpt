@@ -1,0 +1,38 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}
+    Dados da prova
+{% endblock title %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'upload/css/upload.css' %}">
+{% endblock extra_css %}
+{% block content %}
+    <form method="post"
+          action="{% url 'upload-meta' session_id %}"
+          class="meta-form">
+        {% csrf_token %}
+        {{ form.non_field_errors }}
+        {% for field in form %}
+            {% if field.name != "professor" %}
+                <div class="form-field">
+                    {{ field.label_tag }}
+                    {{ field }}
+                    {{ field.errors }}
+                </div>
+            {% endif %}
+        {% endfor %}
+        <div class="form-field">
+            <label for="professor">Professor</label>
+            <select name="professor"
+                    id="professor"
+                    hx-trigger="revealed, change from:#id_ano_semestre, change from:#id_materia"
+                    hx-get="{% url 'upload-professors' %}?semester={{ prova.ano_semestre|default:'' }}&materia={{ prova.materia|default:'' }}"
+                    hx-target="this"
+                    hx-swap="innerHTML">
+                {% for choice in form.professor.field.choices %}<option value="{{ choice.0 }}">{{ choice.1 }}</option>{% endfor %}
+            </select>
+            {{ form.professor.errors }}
+        </div>
+        <button type="submit" class="btn-primary">Continuar →</button>
+    </form>
+{% endblock content %}

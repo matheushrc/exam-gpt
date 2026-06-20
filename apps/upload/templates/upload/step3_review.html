@@ -1,0 +1,62 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}
+    Revisar questões
+{% endblock title %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'upload/css/upload.css' %}">
+{% endblock extra_css %}
+{% block content %}
+    <form method="post"
+          action="{% url 'upload-review' session_id %}"
+          class="review-form">
+        {% csrf_token %}
+        {% for questao in questoes %}
+            <article class="questao-card" id="q{{ questao.numero }}">
+                <header>
+                    <span class="questao-num">Questão {{ questao.numero }}</span>
+                    <span class="pontuacao">{{ questao.pontuacao }} pts</span>
+                </header>
+                <label>Enunciado</label>
+                <textarea name="q{{ forloop.counter }}_enunciado"
+                          class="md-editor expandable"
+                          rows="3">{{ questao.enunciado }}</textarea>
+                {% if questao.subquestoes %}
+                    {% for sub in questao.subquestoes %}
+                        <div class="subquestao">
+                            <span class="sub-label">{{ sub.label }}</span>
+                            <textarea name="q{{ forloop.parentloop.counter }}_sub{{ forloop.counter }}_enunciado"
+                                      class="md-editor expandable"
+                                      rows="3">{{ sub.enunciado }}</textarea>
+                            <textarea name="q{{ forloop.parentloop.counter }}_sub{{ forloop.counter }}_resposta"
+                                      class="md-editor expandable"
+                                      rows="3">{{ sub.resposta|default:"" }}</textarea>
+                            <input type="number"
+                                   name="q{{ forloop.parentloop.counter }}_sub{{ forloop.counter }}_nota_recebida"
+                                   step="0.1"
+                                   min="0"
+                                   value="{{ sub.nota_recebida|default:"" }}"
+                                   placeholder="Nota sub {{ sub.label }}">
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <label>Resposta</label>
+                    <textarea name="q{{ forloop.counter }}_resposta"
+                              class="md-editor expandable"
+                              rows="3">{{ questao.resposta|default:"" }}</textarea>
+                    <input type="number"
+                           name="q{{ forloop.counter }}_nota_recebida"
+                           step="0.1"
+                           min="0"
+                           max="{{ questao.pontuacao }}"
+                           value="{{ questao.nota_recebida|default:"" }}"
+                           placeholder="Nota recebida">
+                {% endif %}
+            </article>
+        {% endfor %}
+        <button type="submit" class="btn-primary">Salvar no banco</button>
+    </form>
+{% endblock content %}
+{% block extra_js %}
+    <script src="{% static 'upload/js/markdown-render.js' %}"></script>
+{% endblock extra_js %}
