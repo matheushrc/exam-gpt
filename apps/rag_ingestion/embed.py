@@ -26,7 +26,7 @@ if not GOOGLE_API_KEY:
 client = genai.Client(api_key=GOOGLE_API_KEY)
 
 JSON_PATH = PROJECT_ROOT / "input" / "provas" / "redes-de-computadores" / "redes.json"
-INDEX_PATH = embeddings_settings.INDEX_PATH
+INDEX_PATH = Path(embeddings_settings.INDEX_PATH)
 EMBEDDING_MODEL = embeddings_settings.EMBEDDING_MODEL
 EMBEDDING_DIMS = embeddings_settings.EMBEDDING_DIMS
 
