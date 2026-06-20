@@ -39,7 +39,9 @@ Use only the commands needed for the task at hand:
 - `docker compose up --build`: run the app with MongoDB.
 - `docker compose up mongo`: run only MongoDB for local Django commands.
 - `uv run python manage.py migrate`: apply migrations.
-- `PYTHONPATH=/home/matheus/Documents/Faculdade/provas-gpt uv run python get_exam_json.py`: convert raw exam images from `input/provas` into JSON files in `input/converted_provas`.
+- `uv run python manage.py extract_exams`: batch-extract exam material (photo folders or PDFs of any kind --
+  text-based or scanned) from `input/provas` into JSON files in `input/converted_provas`.
+  Options: `--model gemini-3.5-flash` (default), `--concurrency 2`.
 - `GOOGLE_API_KEY="your-google-api-key" uv run python apps/rag_ingestion/seed_exams.py`: seed converted exams and rebuild `indexes/index.tvim`.
 - `uv run python manage.py runserver`: run Django locally when MongoDB is already available.
 - `uv run python manage.py test`: run tests.
