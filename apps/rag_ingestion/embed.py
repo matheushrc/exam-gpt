@@ -103,13 +103,14 @@ def get_embeddings_batch(client: genai.Client, texts: list[str]) -> list[list[fl
 def upsert_exam(data: dict[str, Any]) -> tuple[Prova, list[Questao], list[str]]:
     prova, _ = Prova.objects.update_or_create(
         materia=data["materia"],
-        ano=data["ano"],
-        semestre=str(data["semestre"]),
+        ano_semestre=data["ano_semestre"],
         numero_avaliacao=data["numero_avaliacao"],
         defaults={
             "professor": data["professor"],
             "cursos": data.get("cursos") or [],
             "data_aplicacao": data["data_aplicacao"],
+            "nota_final": data.get("nota_final"),
+            "recuperacao": data.get("recuperacao", False),
         },
     )
 
@@ -123,6 +124,7 @@ def upsert_exam(data: dict[str, Any]) -> tuple[Prova, list[Questao], list[str]]:
                 "subquestoes": q_data.get("subquestoes") or [],
                 "resposta": q_data.get("resposta"),
                 "pontuacao": q_data.get("pontuacao"),
+                "nota_recebida": q_data.get("nota_recebida"),
             },
         )
         questoes.append(questao)

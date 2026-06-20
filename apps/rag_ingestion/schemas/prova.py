@@ -1,16 +1,16 @@
 from datetime import date
-from typing import Annotated
 
-from pydantic import AfterValidator, BaseModel, Field
-
-
-def validate_semestre(v: int) -> int:
-    if v not in (1, 2):
-        raise ValueError(f"Semestre deve ser 1 ou 2, recebido: {v}.")
-    return v
+from pydantic import BaseModel, Field
 
 
-Semestre = Annotated[int, AfterValidator(validate_semestre)]
+class Nota(BaseModel):
+    """Representa a pontuação de uma questão ou subquestão."""
+
+    nota_questao: float = Field(description="Pontuação máxima atribuída (= pontuacao).")
+    nota_recebida: float | None = Field(
+        default=None,
+        description="Pontuação efetivamente recebida pelo aluno.",
+    )
 
 
 class QuestaoBase(BaseModel):
@@ -28,6 +28,10 @@ class QuestaoBase(BaseModel):
     resposta: str | None = Field(
         description="Resposta do aluno em Markdown. Null se em branco.",
         default=None,
+    )
+    nota_recebida: float | None = Field(
+        default=None,
+        description="Nota recebida pelo aluno nesta questão/subquestão.",
     )
 
 
@@ -59,12 +63,11 @@ class Prova(BaseModel):
         default=None,
     )
     materia: str = Field(description="Nome da disciplina avaliada.")
-    ano: int = Field(description="Ano de aplicação da prova.", ge=2000, le=2100)
-    semestre: Semestre = Field(
-        description="Semestre de aplicação: 1 para primeiro semestre, 2 para segundo semestre.",
-        examples=[1, 2],
+    ano_semestre: str = Field(
+        pattern=r"^\d{4}\.[12]$",
+        description="Ano e semestre no formato 2026.1 ou 2026.2.",
+        examples=["2026.1", "2026.2"],
     )
-    # TODO Converter ano e semestre em float (e.g., 2024.1, 2024.2) para facilitar ordenação e comparação. ano_semestre: float
 
     data_aplicacao: date = Field(
         description="Data de aplicação da prova.",
@@ -75,8 +78,11 @@ class Prova(BaseModel):
         examples=[1, 2, 3],
         ge=1,
     )
-
-    # recuperacao: bool = Field()
+    recuperacao: bool = Field(default=False)
+    nota_final: float | None = Field(
+        default=None,
+        description="Nota total recebida pelo aluno.",
+    )
 
     questoes: list[Questao] = Field(
         description="Lista de questões da prova, na ordem em que aparecem.",

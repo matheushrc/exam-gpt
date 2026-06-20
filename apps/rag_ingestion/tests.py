@@ -93,8 +93,7 @@ class ProvaDeleteCleanupTests(TestCase):
             professor="Professor",
             cursos=[],
             materia="Redes de Computadores",
-            ano=2026,
-            semestre="1",
+            ano_semestre="2026.1",
             data_aplicacao="2026-05-04",
             numero_avaliacao=1,
         )
@@ -107,3 +106,55 @@ class ProvaDeleteCleanupTests(TestCase):
         self.assertEqual(Questao.objects.count(), 0)
         self.assertEqual(Chunks.objects.count(), 0)
         remove_mock.assert_called_once_with([42])
+
+
+class ProvaQuestaoNovosCamposTests(TestCase):
+    def test_prova_nota_final_defaults_to_none(self):
+        prova = Prova.objects.create(
+            professor="Prof",
+            cursos=[],
+            materia="Redes",
+            ano_semestre="2026.1",
+            data_aplicacao="2026-05-04",
+            numero_avaliacao=1,
+        )
+        self.assertIsNone(prova.nota_final)
+
+    def test_prova_recuperacao_defaults_to_false(self):
+        prova = Prova.objects.create(
+            professor="Prof",
+            cursos=[],
+            materia="Redes",
+            ano_semestre="2026.1",
+            data_aplicacao="2026-05-04",
+            numero_avaliacao=1,
+        )
+        self.assertFalse(prova.recuperacao)
+
+    def test_questao_nota_recebida_defaults_to_none(self):
+        questao = Questao.objects.create(numero=1, enunciado="X", pontuacao=2.0)
+        self.assertIsNone(questao.nota_recebida)
+
+    def test_ano_semestre_schema_validation(self):
+        from apps.rag_ingestion.schemas.prova import Prova as ProvaSchema
+        from pydantic import ValidationError
+
+        with self.assertRaises(ValidationError):
+            ProvaSchema(
+                professor="P",
+                materia="M",
+                ano_semestre="1",
+                data_aplicacao="2026-01-01",
+                numero_avaliacao=1,
+                questoes=[],
+            )
+
+        p = ProvaSchema(
+            professor="P",
+            materia="M",
+            ano_semestre="2026.1",
+            data_aplicacao="2026-01-01",
+            numero_avaliacao=1,
+            questoes=[],
+        )
+        self.assertEqual(p.ano_semestre, "2026.1")

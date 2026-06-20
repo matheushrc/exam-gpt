@@ -4,6 +4,7 @@ from typing import ClassVar
 
 from django.db.models import (
     CASCADE,
+    BooleanField,
     CharField,
     DateField,
     FloatField,
@@ -39,6 +40,12 @@ class Questao(Model):
         null=True,
     )
 
+    nota_recebida = FloatField(
+        help_text="Nota recebida pelo aluno nesta questão.",
+        null=True,
+        blank=True,
+    )
+
     class Meta:
         constraints: ClassVar[list] = [
             UniqueConstraint(fields=["numero", "enunciado"], name="unique_questao"),
@@ -63,18 +70,30 @@ class Prova(Model):
     professor = TextField()
     cursos = JSONField()
     materia = TextField()
-    ano = IntegerField()
-    semestre = CharField(max_length=6)
+    ano_semestre = CharField(
+        max_length=7,
+        help_text="Ano e semestre no formato YYYY.S (ex: 2026.1 ou 2026.2).",
+    )
     data_aplicacao = DateField()
     numero_avaliacao = IntegerField()
     questoes = ManyToManyField(to=Questao, related_name="provas")
+
+    nota_final = FloatField(
+        help_text="Nota total recebida pelo aluno nesta prova.",
+        null=True,
+        blank=True,
+    )
+    recuperacao = BooleanField(
+        default=False,
+        help_text="True se esta avaliação é uma recuperação.",
+    )
 
     objects = Manager()
 
     class Meta:
         constraints: ClassVar[list] = [
             UniqueConstraint(
-                fields=["materia", "ano", "semestre", "numero_avaliacao"],
+                fields=["materia", "ano_semestre", "numero_avaliacao"],
                 name="unique_prova",
             ),
         ]
