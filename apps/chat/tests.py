@@ -5,6 +5,7 @@ from unittest import mock
 
 from django.core.management import call_command
 from django.test import TestCase
+from rest_framework.test import APIClient
 
 from apps.chat import cache
 
@@ -116,3 +117,37 @@ class SyncScheduleCommandTests(TestCase):
             self.assertTrue(schedule_file.exists())
             with schedule_file.open(encoding="utf-8") as f:
                 self.assertEqual(json.load(f), schedule_payload)
+
+
+class ChatMessageViewTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+
+    def test_post_with_empty_message_returns_400(self):
+        response = self.client.post("/api/chat/", {"message": ""}, format="json")
+        self.assertEqual(response.status_code, 400)
+
+    def test_post_with_missing_message_returns_400(self):
+        response = self.client.post("/api/chat/", {}, format="json")
+        self.assertEqual(response.status_code, 400)
+
+    @mock.patch("apps.chat.views._get_gemini_client")
+    @mock.patch("apps.chat.views.search")
+    def test_post_returns_answer_and_sources(self, mock_search, mock_get_client):
+        mock_search.return_value = []
+
+        mock_response = mock.Mock()
+        mock_response.text = "Resposta gerada pelo modelo."
+        mock_client = mock.Mock()
+        mock_client.models.generate_content.return_value = mock_response
+        mock_get_client.return_value = mock_client
+
+        response = self.client.post(
+            "/api/chat/", {"message": "O que é recursão?"}, format="json"
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["query"], "O que é recursão?")
+        self.assertEqual(response.data["answer"], "Resposta gerada pelo modelo.")
+        self.assertEqual(response.data["sources"], [])
+        mock_search.assert_called_once()

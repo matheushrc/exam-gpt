@@ -1,0 +1,64 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}
+    Provas GPT
+{% endblock title %}
+{% block body_class %}
+    chat-layout
+{% endblock body_class %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'chat/css/chat.css' %}">
+{% endblock extra_css %}
+{% block content %}
+    <aside id="sidebar" class="sidebar">
+        <button id="sidebar-toggle"
+                type="button"
+                class="sidebar-toggle"
+                aria-label="Recolher menu">☰</button>
+        <nav class="sidebar-nav">
+            <a href="{% url 'upload' %}"
+               class="sidebar-item"
+               data-tooltip="Enviar prova">
+                <span class="sidebar-icon">⬆</span>
+                <span class="sidebar-label">Enviar prova</span>
+            </a>
+            <a href="{% url 'index' %}"
+               class="sidebar-item"
+               data-tooltip="Nova conversa">
+                <span class="sidebar-icon">💬</span>
+                <span class="sidebar-label">Nova conversa</span>
+            </a>
+        </nav>
+    </aside>
+    <main class="chat-main">
+        <div id="chat-messages" class="chat-messages">
+            <div id="chat-welcome" class="chat-welcome">
+                <h1>Provas GPT</h1>
+                <p>Tire suas dúvidas sobre questões de provas anteriores.</p>
+                <div class="suggestion-chips">
+                    <button type="button" class="suggestion-chip" onclick="sendSuggestion(this)">
+                        Quais foram as questões mais difíceis de Cálculo I?
+                    </button>
+                    <button type="button" class="suggestion-chip" onclick="sendSuggestion(this)">
+                        Como resolver questões de derivadas implícitas?
+                    </button>
+                </div>
+            </div>
+        </div>
+        <div class="chat-input-bar">
+            <textarea id="chat-input"
+                      class="chat-input"
+                      placeholder="Pergunte algo sobre as provas..."
+                      rows="1"
+                      onkeydown="handleEnter(event)"></textarea>
+            <button id="chat-send"
+                    type="button"
+                    class="chat-send-btn"
+                    onclick="sendMessage()"
+                    aria-label="Enviar mensagem">➤</button>
+        </div>
+    </main>
+{% endblock content %}
+{% block extra_js %}
+    <script src="{% static 'chat/js/chat.js' %}"></script>
+{% endblock extra_js %}
