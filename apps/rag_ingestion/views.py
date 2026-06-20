@@ -43,7 +43,7 @@ if __name__ == "__main__":
 
     # Example usage
 
-    redes = "../../data/provas/redes/"
+    redes = "../../input/provas/redes/"
 
     images = load_images_from_folder(redes)
     prova_data = asyncio.run(get_exam_data(google_client, images))

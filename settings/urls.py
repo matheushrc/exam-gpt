@@ -31,4 +31,5 @@ urlpatterns = [
         name="swagger-ui",
     ),
     path("api/", include("apps.schedule.urls")),
+    path("api/", include("apps.rag_search.urls")),
 ]

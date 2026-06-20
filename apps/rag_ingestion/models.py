@@ -13,10 +13,10 @@ from django.db.models import (
     JSONField,
     Manager,
     Model,
+    PositiveIntegerField,
     TextField,
     UniqueConstraint,
 )
-from django_mongodb_backend.fields import ArrayField
 
 
 class Questao(Model):
@@ -51,7 +51,7 @@ class Chunks(Model):
         on_delete=CASCADE,
     )
 
-    question_embedding = ArrayField(FloatField(), size=768, null=True, blank=True)
+    turbo_id = PositiveIntegerField(null=True, blank=True)
 
     class Meta:
         constraints: ClassVar[list] = [

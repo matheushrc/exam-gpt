@@ -8,8 +8,8 @@ import django
 import numpy as np
 from turbovec import IdMapIndex
 
-BASE_DIR = Path(__file__).resolve().parent
-sys.path.insert(0, str(BASE_DIR))
+PROJECT_ROOT = Path(__file__).resolve().parents[2]
+sys.path.insert(0, str(PROJECT_ROOT))
 os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings.settings")
 django.setup()
 
@@ -25,9 +25,8 @@ if not GOOGLE_API_KEY:
 
 client = genai.Client(api_key=GOOGLE_API_KEY)
 
-JSON_PATH = BASE_DIR / "data" / "provas" / "redes" / "redes.json"
+JSON_PATH = PROJECT_ROOT / "input" / "provas" / "redes-de-computadores" / "redes.json"
 INDEX_PATH = embeddings_settings.INDEX_PATH
-MAPPING_PATH = embeddings_settings.MAPPING_PATH
 EMBEDDING_MODEL = embeddings_settings.EMBEDDING_MODEL
 EMBEDDING_DIMS = embeddings_settings.EMBEDDING_DIMS
 
@@ -112,38 +111,24 @@ def main() -> None:
     embeddings = get_embeddings_batch(chunk_texts)
     print("ok")
 
-    # 3. Salva os embeddings associados aos chunks no banco de dados Django (MongoDB)
-    for questao, embedding in zip(questoes_objs, embeddings):
-        Chunks.objects.update_or_create(
-            id_questao=questao,
-            defaults={"question_embedding": embedding},
-        )
+    # 3. Reconstrói o índice Turbovec e salva em Mongo apenas o ID numérico do vetor.
+    if embeddings:
+        all_vectors = np.array(embeddings, dtype=np.float32)
+        turbo_ids = np.arange(len(all_vectors), dtype=np.uint64)
 
-    # 4. Reconstrói o índice Turbovec usando IdMapIndex para permitir "allowlist"
-    # Mapeamos o índice com chaves numéricas sequenciais de 0 a N (uint64)
-    # e salvamos a correspondência de ObjectIds no JSON
-    todos_chunks = list(Chunks.objects.exclude(question_embedding=None))
-
-    if todos_chunks:
-        all_vectors = np.array(
-            [c.question_embedding for c in todos_chunks], dtype=np.float32
-        )
-        all_ids = [str(c.id_questao_id) for c in todos_chunks]
-
-        # Sequencial de chaves para compatibilidade com allowlists no IdMapIndex
-        sequential_keys = np.arange(len(all_vectors), dtype=np.uint64)
-
-        # Usando IdMapIndex em vez de TurboQuantIndex para liberar suporte ao parâmetro allowlist
         index = IdMapIndex(dim=EMBEDDING_DIMS, bit_width=4)
-        index.add_with_ids(all_vectors, sequential_keys)
+        index.add_with_ids(all_vectors, turbo_ids)
 
         INDEX_PATH.parent.mkdir(parents=True, exist_ok=True)
         index.write(str(INDEX_PATH))
 
-        with MAPPING_PATH.open("w", encoding="utf-8") as f:
-            json.dump(all_ids, f, indent=4)
+        for questao, turbo_id in zip(questoes_objs, turbo_ids):
+            Chunks.objects.update_or_create(
+                id_questao=questao,
+                defaults={"turbo_id": int(turbo_id)},
+            )
 
-        print("Índice vetorial e mapeamento salvos com sucesso!")
+        print("Índice vetorial salvo e chunks vinculados aos IDs Turbovec!")
 
     # Prova.questoes logic
     prova, p_created = Prova.objects.update_or_create(
