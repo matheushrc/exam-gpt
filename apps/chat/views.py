@@ -79,7 +79,7 @@ def _make_chat_agent(google_client: GoogleAgent) -> Agent:
         output_type=str,
         model_name=CHAT_MODEL,
         retries=3,
-        model_settings={"temperature": 0.3},
+        model_settings={"temperature": 0.0},
         system_prompt=CHAT_SYSTEM_PROMPT.strip(),
     )
 
