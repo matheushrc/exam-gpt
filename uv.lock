@@ -311,6 +311,19 @@ wheels = [
 ]
 
 [[package]]
+name = "django-htmx"
+version = "1.27.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "asgiref" },
+    { name = "django" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/34/f2/8c3e28a5eed8e5226835c762892bfef74eda7e8629c65b49c186098eb303/django_htmx-1.27.0.tar.gz", hash = "sha256:036e5da801bfdf5f1ca815f21592cfb9f004a898f330c842f15e55c70e301a75", size = 65362, upload-time = "2025-11-28T23:18:55.049Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/23/ac/25d28489dc43224e260f4ebee7565f7ef1efe12af0f284a89500c19f75e2/django_htmx-1.27.0-py3-none-any.whl", hash = "sha256:13e1e13b87d39b57f95aae6e4987cb3df056d0b1373a41f4a94504a00298ffd8", size = 62126, upload-time = "2025-11-28T23:18:53.57Z" },
+]
+
+[[package]]
 name = "django-mongodb-backend"
 version = "6.0.3"
 source = { registry = "https://pypi.org/simple" }
@@ -956,6 +969,7 @@ dependencies = [
     { name = "beautifulsoup4" },
     { name = "django" },
     { name = "django-browser-reload" },
+    { name = "django-htmx" },
     { name = "django-mongodb-backend" },
     { name = "django-watchfiles" },
     { name = "djangorestframework" },
@@ -989,6 +1003,7 @@ requires-dist = [
     { name = "beautifulsoup4", specifier = ">=4.14.3" },
     { name = "django", specifier = ">=6.0.3" },
     { name = "django-browser-reload", specifier = ">=1.21.0" },
+    { name = "django-htmx", specifier = ">=1.27.0" },
     { name = "django-mongodb-backend", specifier = ">=6.0.3" },
     { name = "django-watchfiles", specifier = ">=1.4.0" },
     { name = "djangorestframework", specifier = ">=3.17.1" },
