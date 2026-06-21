@@ -1,7 +1,9 @@
+import asyncio
 import os
 
 from django.views.generic import TemplateView
 from drf_spectacular.utils import extend_schema
+from pydantic_ai.agent import Agent
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -12,6 +14,7 @@ from apps.chat.cache import (
     get_schedule,
     get_semesters,
 )
+from apps.rag_ingestion.agents.Google import GoogleAgent
 from apps.rag_search.search import search
 
 CHAT_MODEL = "gemini-3.1-flash-lite"
@@ -71,13 +74,24 @@ class ProfessorsView(APIView):
         return Response(professors)
 
 
-def _get_gemini_client():
-    from google import genai
+def _make_chat_agent(google_client: GoogleAgent) -> Agent:
+    return google_client.create_agent(
+        output_type=str,
+        model_name=CHAT_MODEL,
+        retries=3,
+        model_settings={"temperature": 0.3},
+        system_prompt=CHAT_SYSTEM_PROMPT.strip(),
+    )
 
-    google_api_key = os.environ.get("GOOGLE_API_KEY")
-    if not google_api_key:
+
+async def _generate_answer(user_prompt: str) -> str:
+    api_key = os.environ.get("GOOGLE_API_KEY")
+    if not api_key:
         raise RuntimeError("GOOGLE_API_KEY environment variable not set.")
-    return genai.Client(api_key=google_api_key)
+    client = GoogleAgent(api_key=api_key)
+    agent = _make_chat_agent(client)
+    result = await client.get_inference_async(agent=agent, user_prompt=user_prompt)
+    return result.output
 
 
 def _format_context(results):
@@ -140,13 +154,7 @@ class ChatMessageView(APIView):
         )
 
         try:
-            client = _get_gemini_client()
-            response = client.models.generate_content(
-                model=CHAT_MODEL,
-                contents=user_prompt,
-                config={"system_instruction": CHAT_SYSTEM_PROMPT.strip()},
-            )
-            answer = response.text
+            answer = asyncio.run(_generate_answer(user_prompt))
         except Exception as exc:
             answer = f"Ocorreu um erro ao gerar a resposta: {exc}"
 

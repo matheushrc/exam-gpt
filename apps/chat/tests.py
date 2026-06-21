@@ -1,4 +1,5 @@
 import json
+import os
 import tempfile
 from pathlib import Path
 from unittest import mock
@@ -131,16 +132,21 @@ class ChatMessageViewTests(TestCase):
         response = self.client.post("/api/chat/", {}, format="json")
         self.assertEqual(response.status_code, 400)
 
-    @mock.patch("apps.chat.views._get_gemini_client")
+    @mock.patch.dict(os.environ, {"GOOGLE_API_KEY": "test-key"})
+    @mock.patch("apps.chat.views.GoogleAgent")
     @mock.patch("apps.chat.views.search")
-    def test_post_returns_answer_and_sources(self, mock_search, mock_get_client):
+    def test_post_returns_answer_and_sources(self, mock_search, mock_google_agent):
         mock_search.return_value = []
 
-        mock_response = mock.Mock()
-        mock_response.text = "Resposta gerada pelo modelo."
+        mock_result = mock.Mock()
+        mock_result.output = "Resposta gerada pelo modelo."
+
+        async def fake_get_inference_async(**kwargs):
+            return mock_result
+
         mock_client = mock.Mock()
-        mock_client.models.generate_content.return_value = mock_response
-        mock_get_client.return_value = mock_client
+        mock_client.get_inference_async = fake_get_inference_async
+        mock_google_agent.return_value = mock_client
 
         response = self.client.post(
             "/api/chat/", {"message": "O que é recursão?"}, format="json"
