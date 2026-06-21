@@ -26,7 +26,7 @@ SECRET_KEY = os.environ.get(
 )
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = os.environ.get("DEBUG", "True").lower() not in ("false", "0", "no")
 
 ALLOWED_HOSTS = []
 
@@ -61,9 +61,15 @@ MIDDLEWARE = [
     "django_htmx.middleware.HtmxMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
-    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django_browser_reload.middleware.BrowserReloadMiddleware",
 ]
+
+# In DEBUG, Django's staticfiles finders serve live from STATICFILES_DIRS so
+# CSS/JS edits show immediately. WhiteNoise serves the collected snapshot from
+# STATIC_ROOT, which would otherwise shadow those live edits -- so only enable
+# it in production.
+if not DEBUG:
+    MIDDLEWARE.insert(1, "whitenoise.middleware.WhiteNoiseMiddleware")
 
 ROOT_URLCONF = "settings.urls"
 
