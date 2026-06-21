@@ -135,17 +135,29 @@ class ChatMessageViewTests(TestCase):
     @mock.patch.dict(os.environ, {"GOOGLE_API_KEY": "test-key"})
     @mock.patch("apps.chat.views.GoogleAgent")
     @mock.patch("apps.chat.views.search")
-    def test_post_returns_answer_and_sources(self, mock_search, mock_google_agent):
+    def test_post_with_grounding_calls_retrieve_tool(
+        self, mock_search, mock_google_agent
+    ):
         mock_search.return_value = []
 
         mock_result = mock.Mock()
         mock_result.output = "Resposta gerada pelo modelo."
 
-        async def fake_get_inference_async(**kwargs):
+        async def fake_get_inference_async(agent, user_prompt, **kwargs):
+            # Simulate the model deciding to call the retrieve_exams tool.
+            for tool in agent.kwargs.get("tools") or []:
+                tool.function("O que é recursão?")
             return mock_result
 
         mock_client = mock.Mock()
         mock_client.get_inference_async = fake_get_inference_async
+
+        def fake_create_agent(**kwargs):
+            agent = mock.Mock()
+            agent.kwargs = kwargs
+            return agent
+
+        mock_client.create_agent = fake_create_agent
         mock_google_agent.return_value = mock_client
 
         response = self.client.post(
@@ -157,3 +169,30 @@ class ChatMessageViewTests(TestCase):
         self.assertEqual(response.data["answer"], "Resposta gerada pelo modelo.")
         self.assertEqual(response.data["sources"], [])
         mock_search.assert_called_once()
+
+    @mock.patch.dict(os.environ, {"GOOGLE_API_KEY": "test-key"})
+    @mock.patch("apps.chat.views.GoogleAgent")
+    @mock.patch("apps.chat.views.search")
+    def test_post_without_grounding_never_calls_search(
+        self, mock_search, mock_google_agent
+    ):
+        mock_result = mock.Mock()
+        mock_result.output = "Resposta gerada pelo modelo."
+
+        async def fake_get_inference_async(**kwargs):
+            return mock_result
+
+        mock_client = mock.Mock()
+        mock_client.get_inference_async = fake_get_inference_async
+        mock_client.create_agent = mock.Mock(return_value=mock.Mock())
+        mock_google_agent.return_value = mock_client
+
+        response = self.client.post(
+            "/api/chat/",
+            {"message": "O que é recursão?", "grounding": False},
+            format="json",
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.data["sources"], [])
+        mock_search.assert_not_called()

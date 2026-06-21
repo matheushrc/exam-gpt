@@ -43,6 +43,7 @@ def search(
     query: str,
     materia: str | None = None,
     top_k: int = search_settings.TOP_K,
+    similarity_threshold: float = search_settings.MIN_SIMILARITY_SCORE,
 ) -> list[tuple[float, Questao]]:
     vector_index = load_index()
     if vector_index is None:
@@ -69,7 +70,7 @@ def search(
     target_turbo_ids = []
     id_scores = {}
     for score, idx in zip(scores[0], indices[0]):
-        if score >= search_settings.MIN_SIMILARITY_SCORE:
+        if score >= similarity_threshold:
             turbo_id = int(idx)
             target_turbo_ids.append(turbo_id)
             id_scores[turbo_id] = float(score)
