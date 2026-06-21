@@ -21,6 +21,46 @@ body {
     line-height: 1.5;
 }
 
+.hidden {
+    display: none !important;
+}
+
+/* Custom scrollbar (ported from DC helmet) */
+::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 10px;
+    border: 3px solid transparent;
+    background-clip: padding-box;
+}
+
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+/* Strip native disclosure markers — DC styles its own summary affordances */
+details > summary {
+    list-style: none;
+}
+
+details > summary::-webkit-details-marker {
+    display: none;
+}
+
+input::placeholder,
+textarea::placeholder {
+    color: var(--color-text-muted);
+    opacity: 0.7;
+}
+
+p:last-child {
+    margin-bottom: 0 !important;
+}
+
 a {
     color: var(--color-accent);
 }

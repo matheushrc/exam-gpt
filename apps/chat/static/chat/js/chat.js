@@ -3,13 +3,93 @@
 
   var isLoading = false;
 
-  function getCsrfToken() {
-    var match = document.cookie.match(/(?:^|; )csrftoken=([^;]*)/);
-    return match ? decodeURIComponent(match[1]) : "";
+  // Sidebar collapse, the appearance menu, and the model-settings modal live in
+  // shell.js (shared with the upload screen). chat.js only owns the right-hand
+  // conversation panel and the transcript.
+  var loadSettings = window.PGShell.loadSettings;
+  var saveSetting = window.PGShell.saveSetting;
+  var getCsrfToken = window.PGShell.getCsrfToken;
+
+  /* ---------------- conversation settings (right panel) ---------------- */
+
+  function setupRightPanel() {
+    var panel = document.getElementById("right-panel");
+    var toggle = document.getElementById("right-panel-toggle");
+    var closeBtn = document.getElementById("right-panel-close");
+    var groundingBtn = document.getElementById("setting-grounding");
+    var groundStatusText = document.getElementById("ground-status-text");
+    var ragGroup = document.getElementById("rag-group");
+    var topKInput = document.getElementById("setting-top-k");
+    var topKValue = document.getElementById("top-k-value");
+    var similarityInput = document.getElementById("setting-similarity");
+    var similarityValue = document.getElementById("similarity-value");
+    var temperatureInput = document.getElementById("setting-temperature");
+    var temperatureValue = document.getElementById("temperature-value");
+    var maxTokensInput = document.getElementById("setting-max-tokens");
+
+    var settings = loadSettings();
+
+    function renderGrounding() {
+      groundingBtn.classList.toggle("checked", settings.grounding);
+      groundingBtn.setAttribute("aria-checked", String(settings.grounding));
+      groundStatusText.textContent = settings.grounding
+        ? "A IA decide quando recuperar"
+        : "Sem recuperação — só o modelo";
+      ragGroup.classList.toggle("disabled", !settings.grounding);
+    }
+
+    topKInput.value = settings.topK;
+    topKValue.textContent = settings.topK;
+    similarityInput.value = settings.similarity;
+    similarityValue.textContent = settings.similarity.toFixed(2);
+    temperatureInput.value = settings.temperature;
+    temperatureValue.textContent = settings.temperature.toFixed(1);
+    maxTokensInput.value = settings.maxTokens;
+    renderGrounding();
+
+    if (toggle && panel) {
+      toggle.addEventListener("click", function () {
+        panel.classList.toggle("hidden");
+        toggle.classList.toggle("active", !panel.classList.contains("hidden"));
+      });
+    }
+    if (closeBtn && panel && toggle) {
+      closeBtn.addEventListener("click", function () {
+        panel.classList.add("hidden");
+        toggle.classList.remove("active");
+      });
+    }
+
+    groundingBtn.addEventListener("click", function () {
+      settings.grounding = !settings.grounding;
+      saveSetting("grounding", settings.grounding);
+      renderGrounding();
+    });
+    topKInput.addEventListener("input", function () {
+      settings.topK = Number(topKInput.value);
+      topKValue.textContent = settings.topK;
+      saveSetting("topK", settings.topK);
+    });
+    similarityInput.addEventListener("input", function () {
+      settings.similarity = Number(similarityInput.value);
+      similarityValue.textContent = settings.similarity.toFixed(2);
+      saveSetting("similarity", settings.similarity);
+    });
+    temperatureInput.addEventListener("input", function () {
+      settings.temperature = Number(temperatureInput.value);
+      temperatureValue.textContent = settings.temperature.toFixed(1);
+      saveSetting("temperature", settings.temperature);
+    });
+    maxTokensInput.addEventListener("input", function () {
+      settings.maxTokens = Number(maxTokensInput.value) || 8192;
+      saveSetting("maxTokens", settings.maxTokens);
+    });
   }
 
+  /* ---------------- chat transcript ---------------- */
+
   function scrollToBottom() {
-    var container = document.getElementById("chat-messages");
+    var container = document.getElementById("chat-scroll");
     container.scrollTop = container.scrollHeight;
   }
 
@@ -17,6 +97,18 @@
     var welcome = document.getElementById("chat-welcome");
     if (welcome) {
       welcome.remove();
+    }
+  }
+
+  function setChatHeader() {
+    var title = document.getElementById("chat-title");
+    var subtitle = document.getElementById("chat-subtitle");
+    var count = document.querySelectorAll("#chat-messages .chat-bubble.user").length;
+    if (count === 0) {
+      title.textContent = "Nova conversa";
+      subtitle.textContent = "Banco de provas · busca semântica";
+    } else {
+      subtitle.textContent = count + " pergunta(s) nesta sessão";
     }
   }
 
@@ -38,6 +130,7 @@
     bubble.className = "chat-bubble user";
     bubble.textContent = text;
     container.appendChild(bubble);
+    setChatHeader();
     scrollToBottom();
     return bubble;
   }
@@ -45,8 +138,9 @@
   function appendLoadingBubble() {
     var container = document.getElementById("chat-messages");
     var bubble = document.createElement("div");
-    bubble.className = "chat-bubble assistant loading";
+    bubble.className = "chat-bubble loading";
     bubble.innerHTML =
+      '<div class="assistant-avatar">PG</div>' +
       '<span class="dot-pulse"><span></span><span></span><span></span></span>';
     container.appendChild(bubble);
     scrollToBottom();
@@ -81,8 +175,9 @@
     header.appendChild(scoreBadge);
 
     var materiaInfo = document.createElement("span");
+    materiaInfo.className = "materia-info";
     materiaInfo.textContent =
-      (prova.materia || "Matéria") + " · Q" + (questao.numero || "?");
+      (prova.materia || "Matéria") + " · Questão " + (questao.numero || "?");
     header.appendChild(materiaInfo);
 
     card.appendChild(header);
@@ -94,7 +189,7 @@
       if (prova.professor) parts.push(prova.professor);
       if (prova.ano_semestre) parts.push(prova.ano_semestre);
       if (prova.numero_avaliacao) {
-        parts.push("Avaliação " + prova.numero_avaliacao);
+        parts.push("P" + prova.numero_avaliacao);
       }
       profLine.textContent = parts.join(" · ");
       card.appendChild(profLine);
@@ -109,7 +204,7 @@
       var details = document.createElement("details");
       details.className = "resposta-toggle";
       var summary = document.createElement("summary");
-      summary.textContent = "Ver resposta";
+      summary.textContent = "Ver resolução";
       details.appendChild(summary);
       var respostaContent = document.createElement("div");
       respostaContent.className = "md-content";
@@ -126,6 +221,13 @@
     var bubble = document.createElement("div");
     bubble.className = "chat-bubble assistant";
 
+    var header = document.createElement("div");
+    header.className = "assistant-header";
+    header.innerHTML =
+      '<div class="assistant-avatar">PG</div>' +
+      '<span class="assistant-label">Provas GPT responde</span>';
+    bubble.appendChild(header);
+
     var content = document.createElement("div");
     content.className = "md-content";
     renderMarkdownInto(content, answer);
@@ -136,7 +238,9 @@
       sourcesSection.className = "sources-section";
 
       var summary = document.createElement("summary");
-      summary.textContent = "Fontes (" + sources.length + ")";
+      summary.innerHTML =
+        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>' +
+        "Fontes citadas (" + sources.length + ")";
       sourcesSection.appendChild(summary);
 
       sources.forEach(function (source) {
@@ -151,33 +255,45 @@
     return bubble;
   }
 
-  function sendMessage() {
-    if (isLoading) {
-      return;
-    }
-
-    var input = document.getElementById("chat-input");
-    var text = input.value.trim();
-    if (!text) {
+  function sendText(text) {
+    var t = (text || "").trim();
+    if (!t || isLoading) {
       return;
     }
 
     removeWelcome();
-    appendUserBubble(text);
+    appendUserBubble(t);
 
+    var input = document.getElementById("chat-input");
     input.value = "";
     input.style.height = "auto";
 
     var loadingBubble = appendLoadingBubble();
     isLoading = true;
 
+    var settings = loadSettings();
+    var headers = {
+      "Content-Type": "application/json",
+      "X-CSRFToken": getCsrfToken(),
+    };
+    if (settings.apiKey) {
+      headers["X-Google-Api-Key"] = settings.apiKey;
+    }
+
+    var payload = {
+      message: t,
+      grounding: settings.grounding,
+      model: settings.model,
+      top_k: settings.topK,
+      similarity_threshold: settings.similarity,
+      temperature: settings.temperature,
+      max_tokens: settings.maxTokens,
+    };
+
     fetch("/api/chat/", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": getCsrfToken(),
-      },
-      body: JSON.stringify({ message: text }),
+      headers: headers,
+      body: JSON.stringify(payload),
     })
       .then(function (response) {
         if (!response.ok) {
@@ -209,6 +325,11 @@
       });
   }
 
+  function sendMessage() {
+    var input = document.getElementById("chat-input");
+    sendText(input.value);
+  }
+
   function sendSuggestion(btn) {
     var input = document.getElementById("chat-input");
     input.value = btn.textContent.trim();
@@ -219,16 +340,6 @@
     if (event.key === "Enter" && !event.shiftKey) {
       event.preventDefault();
       sendMessage();
-    }
-  }
-
-  function setupSidebarToggle() {
-    var toggle = document.getElementById("sidebar-toggle");
-    var sidebar = document.getElementById("sidebar");
-    if (toggle && sidebar) {
-      toggle.addEventListener("click", function () {
-        sidebar.classList.toggle("collapsed");
-      });
     }
   }
 
@@ -244,12 +355,11 @@
   }
 
   document.addEventListener("DOMContentLoaded", function () {
-    setupSidebarToggle();
     setupAutoResize();
+    setupRightPanel();
   });
 
   window.sendMessage = sendMessage;
   window.sendSuggestion = sendSuggestion;
   window.handleEnter = handleEnter;
-  window.getCsrfToken = getCsrfToken;
 })();

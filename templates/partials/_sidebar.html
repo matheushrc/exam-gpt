@@ -1,0 +1,50 @@
+{% load static %}
+<aside id="sidebar" class="sidebar">
+    <div class="sidebar-header">
+        <div class="brand">
+            <div class="brand-badge">PG</div>
+            <div class="brand-text">
+                <span class="brand-title">Provas GPT</span>
+                <span class="brand-sub">Banco de Provas</span>
+            </div>
+        </div>
+        <button id="sidebar-toggle" type="button" class="icon-btn" title="Recolher menu" aria-label="Recolher menu">
+            <svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><line x1="9.5" y1="4" x2="9.5" y2="20"/></svg>
+        </button>
+    </div>
+    <button id="sidebar-collapsed-logo" type="button" class="sidebar-collapsed-logo" title="Expandir menu" aria-label="Expandir menu">
+        <span class="collapsed-logo-text">PG</span>
+        <svg class="collapsed-logo-icon" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="2.5"/><line x1="9.5" y1="4" x2="9.5" y2="20"/></svg>
+    </button>
+    <nav class="sidebar-nav">
+        <a href="{% url 'index' %}" class="sidebar-item{% if active_view == 'chat' %} active{% endif %}" title="Nova conversa">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" class="sidebar-icon"><path d="M12 5v14M5 12h14"/></svg>
+            <span class="sidebar-label">Nova conversa</span>
+        </a>
+        <a href="{% url 'upload' %}" class="sidebar-item{% if active_view == 'upload' %} active{% endif %}" title="Enviar prova">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="sidebar-icon"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M5 20h14"/></svg>
+            <span class="sidebar-label">Enviar prova</span>
+        </a>
+    </nav>
+    <div id="sidebar-history" class="sidebar-history">
+        <div class="history-label">Histórico</div>
+        <button type="button" class="history-item active">
+            <span class="history-title">Derivadas implícitas — P2</span>
+            <span class="history-sub">Cálculo I · há 2 h</span>
+        </button>
+        <button type="button" class="history-item">
+            <span class="history-title">Integrais por partes</span>
+            <span class="history-sub">Cálculo I · ontem</span>
+        </button>
+        <button type="button" class="history-item">
+            <span class="history-title">Limites notáveis</span>
+            <span class="history-sub">Cálculo I · 3 dias</span>
+        </button>
+    </div>
+    <button id="sidebar-footer" type="button" class="sidebar-footer" title="Configurações">
+        <span class="footer-icon">
+            <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+        </span>
+        <span class="sidebar-label">Configurações</span>
+    </button>
+</aside>

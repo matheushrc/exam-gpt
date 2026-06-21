@@ -1,46 +1,147 @@
+/* Design tokens ported from design/Provas GPT.dc.html — 3 visual variants
+   (Manuscrito, Periódico, Acadêmico) x 2 modes (light, dark). Switched at
+   runtime via [data-variant] and [data-theme] on <html> (see theme.js). */
+
 :root {
-    --color-bg: #ffffff;
-    --color-surface: #f9fafb;
-    --color-card: #ffffff;
-    --color-border: #e5e7eb;
-    --color-hover: #f3f4f6;
-    --color-text: #111827;
-    --color-text-muted: #6b7280;
-    --color-accent: #6366f1;
-    --color-accent-light: #eef2ff;
-    --color-tooltip-bg: #1f2937;
-    --color-tooltip-text: #ffffff;
-    --color-error: #ef4444;
-    --color-success: #22c55e;
-
-    --sidebar-width: 220px;
-    --sidebar-collapsed-width: 56px;
-
-    --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    --font-sans: "IBM Plex Sans", system-ui, sans-serif;
+    --font-serif: "Spectral", Georgia, serif;
     --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", monospace;
 
-    --radius-sm: 6px;
+    --sidebar-width: 270px;
+    --sidebar-collapsed-width: 76px;
+
+    --radius-sm: 7px;
     --radius-md: 10px;
     --radius-lg: 16px;
 
     --transition-fast: 0.15s ease;
-    --transition-med: 0.25s ease;
+    --transition-med: 0.22s ease;
 }
 
-@media (prefers-color-scheme: dark) {
-    :root {
-        --color-bg: #0f1117;
-        --color-surface: #161922;
-        --color-card: #1c1f2a;
-        --color-border: #2b2f3a;
-        --color-hover: #242832;
-        --color-text: #e5e7eb;
-        --color-text-muted: #9ca3af;
-        --color-accent: #818cf8;
-        --color-accent-light: #2a2d4d;
-        --color-tooltip-bg: #374151;
-        --color-tooltip-text: #f9fafb;
-        --color-error: #f87171;
-        --color-success: #4ade80;
-    }
+/* Manuscrito (default) */
+html,
+html[data-variant="manuscrito"] {
+    --font-serif: "Spectral", Georgia, serif;
+    --font-sans: "IBM Plex Sans", system-ui, sans-serif;
 }
+
+html,
+html[data-variant="manuscrito"][data-theme="light"] {
+    --color-bg: #f7f2e9;
+    --color-surface: #efe7d8;
+    --color-card: #fffdf8;
+    --color-border: #e4d9c5;
+    --color-hover: #fffdf8;
+    --color-text: #2c2620;
+    --color-text-muted: #706655;
+    --color-accent: #8a2b2b;
+    --color-accent-light: #f1e0da;
+    --color-on-accent: #fff7f2;
+    --color-user-bg: #8a2b2b;
+    --color-user-text: #fdf3ee;
+    --color-error: #b3261e;
+    --color-success: #2f6d3c;
+}
+
+html[data-variant="manuscrito"][data-theme="dark"] {
+    --color-bg: #1b1713;
+    --color-surface: #211c16;
+    --color-card: #272018;
+    --color-border: #3a3026;
+    --color-hover: #272018;
+    --color-text: #ece2d3;
+    --color-text-muted: #a89379;
+    --color-accent: #cf8a6f;
+    --color-accent-light: #352019;
+    --color-on-accent: #1b1713;
+    --color-user-bg: #cf8a6f;
+    --color-user-text: #1b1713;
+    --color-error: #e0796a;
+    --color-success: #7fb88a;
+}
+
+/* Periódico */
+html[data-variant="periodico"] {
+    --font-serif: "Newsreader", Georgia, serif;
+    --font-sans: "Public Sans", system-ui, sans-serif;
+}
+
+html[data-variant="periodico"][data-theme="light"] {
+    --color-bg: #f5f4ef;
+    --color-surface: #ecebe4;
+    --color-card: #ffffff;
+    --color-border: #dcdbd1;
+    --color-hover: #ffffff;
+    --color-text: #1c2230;
+    --color-text-muted: #646a75;
+    --color-accent: #27406f;
+    --color-accent-light: #e6ebf4;
+    --color-on-accent: #fbfcff;
+    --color-user-bg: #27406f;
+    --color-user-text: #fbfcff;
+    --color-error: #b3261e;
+    --color-success: #2f6d3c;
+}
+
+html[data-variant="periodico"][data-theme="dark"] {
+    --color-bg: #13161c;
+    --color-surface: #181c23;
+    --color-card: #1e232c;
+    --color-border: #2d323d;
+    --color-hover: #1e232c;
+    --color-text: #e7e9ee;
+    --color-text-muted: #99a0ac;
+    --color-accent: #8ba6e0;
+    --color-accent-light: #222a3a;
+    --color-on-accent: #0f1218;
+    --color-user-bg: #8ba6e0;
+    --color-user-text: #0f1218;
+    --color-error: #e0796a;
+    --color-success: #7fb88a;
+}
+
+/* Acadêmico */
+html[data-variant="academico"] {
+    --font-serif: "Source Serif 4", Georgia, serif;
+    --font-sans: "Work Sans", system-ui, sans-serif;
+}
+
+html[data-variant="academico"][data-theme="light"] {
+    --color-bg: #f2f3f0;
+    --color-surface: #e8eae4;
+    --color-card: #ffffff;
+    --color-border: #d8dbd2;
+    --color-hover: #ffffff;
+    --color-text: #202620;
+    --color-text-muted: #656a60;
+    --color-accent: #2f5d4e;
+    --color-accent-light: #e1ebe4;
+    --color-on-accent: #f7fbf8;
+    --color-user-bg: #2f5d4e;
+    --color-user-text: #f7fbf8;
+    --color-error: #b3261e;
+    --color-success: #2f6d3c;
+}
+
+html[data-variant="academico"][data-theme="dark"] {
+    --color-bg: #121512;
+    --color-surface: #171b16;
+    --color-card: #1c211b;
+    --color-border: #2b302a;
+    --color-hover: #1c211b;
+    --color-text: #e6e9e1;
+    --color-text-muted: #98a092;
+    --color-accent: #74b095;
+    --color-accent-light: #1e2a23;
+    --color-on-accent: #0f120f;
+    --color-user-bg: #74b095;
+    --color-user-text: #0f120f;
+    --color-error: #e0796a;
+    --color-success: #7fb88a;
+}
+
+:root {
+    --color-tooltip-bg: color-mix(in srgb, var(--color-text) 92%, transparent);
+    --color-tooltip-text: var(--color-bg);
+}
+

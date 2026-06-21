@@ -1,0 +1,42 @@
+<div id="settings-modal" class="modal-overlay hidden">
+    <div class="modal">
+        <div class="modal-header">
+            <div class="modal-header-text">
+                <span class="modal-title">Configurações do modelo</span>
+                <span class="modal-sub">Salvo apenas neste navegador</span>
+            </div>
+            <button id="settings-modal-close" type="button" class="icon-btn" aria-label="Fechar">
+                <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <div class="modal-body">
+            <div class="modal-field-group">
+                <span class="field-title">Modelo de chat</span>
+                <span class="field-desc">Escolha um preset ou informe qualquer ID compatível com pydantic-ai.</span>
+                <div id="model-presets" class="model-presets">
+                    <button type="button" class="preset-chip" data-model="gemini-3.1-flash-lite">gemini-3.1-flash-lite</button>
+                    <button type="button" class="preset-chip" data-model="gemini-3.1-flash">gemini-3.1-flash</button>
+                    <button type="button" class="preset-chip" data-model="gemini-3.1-pro">gemini-3.1-pro</button>
+                </div>
+                <input id="setting-model" type="text" placeholder="ex: gemini-3.1-flash-lite">
+            </div>
+            <div class="modal-field-group">
+                <span class="field-title">Chave de API · Gemini</span>
+                <span class="field-desc">Necessária para o chat e a extração. Armazenada apenas neste navegador.</span>
+                <input id="setting-api-key" type="password" placeholder="AIza…">
+            </div>
+            <div class="modal-field-group">
+                <span class="field-title">Modelo de OCR</span>
+                <span class="field-desc">Fixo — otimizado para extração de provas. Não editável.</span>
+                <div class="ocr-locked">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    <span>gemini-3.5-flash</span>
+                    <span class="locked-badge">Fixo</span>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button id="settings-modal-done" type="button" class="btn-primary">Concluído</button>
+        </div>
+    </div>
+</div>
