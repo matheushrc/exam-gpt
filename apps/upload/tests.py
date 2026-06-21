@@ -83,11 +83,11 @@ class MetaFormTests(TestCase):
 
 
 class UploadViewTests(TestCase):
-    def test_get_renders_step1_template(self):
+    def test_get_renders_upload_screen(self):
         response = self.client.get(reverse("upload"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, "upload/step1_upload.html")
+        self.assertTemplateUsed(response, "upload/upload.html")
 
     def test_post_without_files_shows_error(self):
         response = self.client.post(reverse("upload"), data={})

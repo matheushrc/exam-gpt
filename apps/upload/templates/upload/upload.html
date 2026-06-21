@@ -1,0 +1,112 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}
+    Enviar prova · Provas GPT
+{% endblock title %}
+{% block body_class %}
+    chat-layout
+{% endblock body_class %}
+{% block extra_css %}
+    <link rel="stylesheet" href="{% static 'chat/css/chat.css' %}">
+    <link rel="stylesheet" href="{% static 'upload/css/upload-screen.css' %}">
+{% endblock extra_css %}
+{% block content %}
+    {% include "partials/_sidebar.html" with active_view="upload" %}
+    {% include "partials/_user_menu.html" %}
+    {% include "partials/_settings_modal.html" %}
+
+    <main class="chat-main">
+        <header class="chat-header">
+            <div class="chat-header-title">
+                <span id="chat-title">Enviar prova</span>
+                <span class="chat-header-sub">Adicionar ao banco de provas</span>
+            </div>
+        </header>
+
+        <div class="chat-body">
+            <div class="chat-column">
+                <div class="chat-scroll">
+                    <div class="upload-inner">
+                        <div class="upload-intro">
+                            <span class="upload-eyebrow">Ingestão de provas</span>
+                            <h1>Enviar uma prova</h1>
+                            <p>Faça upload do arquivo da prova. A IA extrai automaticamente as questões, respostas e metadados — você confere antes de indexar no banco.</p>
+                        </div>
+
+                        <input id="upload-file-input" type="file" accept=".pdf,.png,.jpg,.jpeg,image/png,image/jpeg,application/pdf" multiple hidden>
+
+                        {# Stage: empty #}
+                        <div id="upload-empty" class="upload-stage">
+                            <button id="upload-dropzone" type="button" class="upload-dropzone">
+                                <span class="dropzone-icon">
+                                    <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M5 20h14"/></svg>
+                                </span>
+                                <span class="dropzone-title">Arraste o PDF da prova ou clique para enviar</span>
+                                <span class="dropzone-sub">PDF, PNG ou JPG · até 20 MB · extração automática de questões</span>
+                            </button>
+                            <div class="upload-tip">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 16v-4M12 8h.01"/></svg>
+                                Dica: provas escaneadas com texto legível geram a melhor extração.
+                            </div>
+                            <div id="upload-error" class="upload-error hidden"></div>
+                        </div>
+
+                        {# Stage: processing #}
+                        <div id="upload-processing" class="upload-stage hidden">
+                            <div class="upload-processing-card">
+                                <span class="dot-pulse"><span></span><span></span><span></span></span>
+                                <div id="processing-title" class="processing-title">Extraindo questões…</div>
+                                <div class="processing-sub">Lendo enunciados, respostas e metadados com IA. Isso leva alguns segundos.</div>
+                            </div>
+                        </div>
+
+                        {# Stage: review #}
+                        <div id="upload-review" class="upload-stage hidden">
+                            <div class="review-file-card">
+                                <div class="review-file-icon">
+                                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3v4a1 1 0 0 0 1 1h4"/><path d="M5 3h9l5 5v11a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/></svg>
+                                </div>
+                                <div class="review-file-meta">
+                                    <span id="review-filename" class="review-filename"></span>
+                                    <span id="review-filesub" class="review-filesub"></span>
+                                </div>
+                                <button id="review-change" type="button" class="review-change">Trocar</button>
+                            </div>
+
+                            <div class="review-section-label">Metadados da prova</div>
+                            <div id="review-meta" class="review-meta-grid"></div>
+
+                            <div class="review-rec-row">
+                                <div class="review-rec-text">
+                                    <span class="rec-title">Prova de recuperação</span>
+                                    <span class="rec-sub">Marque se esta avaliação é uma recuperação.</span>
+                                </div>
+                                <button id="review-rec-toggle" type="button" class="toggle-switch" role="switch" aria-checked="false">
+                                    <span class="toggle-knob"></span>
+                                </button>
+                            </div>
+
+                            <div class="review-questions-header">
+                                <span id="review-questions-count" class="review-section-label">Questões extraídas</span>
+                                <span id="review-questions-total" class="review-questions-total"></span>
+                            </div>
+                            <div id="review-questions" class="review-questions"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="review-footer" class="upload-footer hidden">
+                    <span id="review-footer-text" class="upload-footer-text"></span>
+                    <button id="review-cancel" type="button" class="btn-secondary">Cancelar</button>
+                    <button id="review-save" type="button" class="btn-primary">
+                        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>
+                        Adicionar ao banco
+                    </button>
+                </div>
+            </div>
+        </div>
+    </main>
+{% endblock content %}
+{% block extra_js %}
+    <script src="{% static 'upload/js/upload-screen.js' %}" defer></script>
+{% endblock extra_js %}

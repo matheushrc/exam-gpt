@@ -1,3 +1,4 @@
+import asyncio
 import base64
 import json
 import logging
@@ -6,6 +7,8 @@ from django.http import Http404
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views import View
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
 from apps.chat.cache import get_professors_for_materia, get_professors_for_semester
 from apps.rag_ingestion.embed import (
@@ -28,7 +31,10 @@ logger = logging.getLogger(__name__)
 
 class UploadView(View):
     async def get(self, request):
-        return render(request, "upload/step1_upload.html")
+        # DC "Enviar prova" screen. The empty -> processing -> review flow is
+        # driven client-side against the JSON endpoints (/api/provas/extract/,
+        # /api/provas/); the session wizard below remains as a no-JS fallback.
+        return render(request, "upload/upload.html")
 
     async def post(self, request):
         try:
@@ -224,6 +230,95 @@ class ReviewView(View):
                 f"Prova salva, mas houve um erro ao gerar embeddings: {warning}",
             )
         return redirect("/")
+
+
+class ProvaExtractAPIView(APIView):
+    """POST /api/provas/extract/ -- JSON counterpart of UploadView for SPA clients.
+
+    Accepts the same inputs (multipart files or base64 camera images) and
+    returns the extracted Prova+Questões as JSON instead of redirecting into
+    the session-based wizard.
+    """
+
+    def post(self, request):
+        try:
+            files = request.FILES.getlist("files")
+            if files:
+                if len(files) == 1 and files[0].name.lower().endswith(".pdf"):
+                    pdf_file = files[0]
+                    exam = asyncio.run(
+                        extract_exam_from_pdf(
+                            pdf_file.read(), source_hint=pdf_file.name
+                        )
+                    )
+                    file_names = [pdf_file.name]
+                else:
+                    images = [f.read() for f in files]
+                    file_names = [f.name for f in files]
+                    exam = asyncio.run(
+                        extract_exam_from_images(
+                            images, source_hint=", ".join(file_names)
+                        )
+                    )
+            elif request.content_type == "application/json":
+                camera_images = request.data.get("camera_images") or []
+                if not camera_images:
+                    raise ValueError("No files or camera images provided.")
+                images = [base64.b64decode(img) for img in camera_images]
+                file_names = [f"camera_{i + 1}.jpg" for i in range(len(images))]
+                exam = asyncio.run(
+                    extract_exam_from_images(images, source_hint="camera capture")
+                )
+            else:
+                raise ValueError("No files or camera images provided.")
+        except (ValueError, RuntimeError) as exc:
+            logger.warning("Exam extraction failed: %s", exc)
+            return Response({"detail": str(exc)}, status=400)
+        except Exception as exc:  # noqa: BLE001
+            logger.exception("Unexpected error during exam extraction")
+            return Response(
+                {"detail": f"Erro inesperado ao extrair a prova: {exc}"}, status=500
+            )
+
+        return Response(
+            {"prova": exam.model_dump(mode="json"), "file_names": file_names}
+        )
+
+
+class ProvaSaveAPIView(APIView):
+    """POST /api/provas/ -- persist a (possibly user-edited) Prova+Questões payload
+    and rebuild the vector index, mirroring ReviewView.post() for SPA clients.
+    """
+
+    def post(self, request):
+        prova = request.data.get("prova")
+        if not prova:
+            return Response({"detail": "O campo 'prova' é obrigatório."}, status=400)
+
+        try:
+            prova_obj, questao_objs, chunk_texts = upsert_exam(prova)
+        except Exception as exc:  # noqa: BLE001
+            logger.exception("Failed to persist exam")
+            return Response({"detail": f"Erro ao salvar a prova: {exc}"}, status=400)
+
+        warning = None
+        try:
+            client = get_client()
+            embeddings = get_embeddings_batch(client, chunk_texts)
+            rebuild_vector_index(questao_objs, embeddings)
+        except Exception as exc:  # noqa: BLE001
+            logger.exception("Embedding/indexing step failed after saving exam")
+            warning = str(exc)
+
+        return Response(
+            {
+                "id": str(prova_obj.id),
+                "materia": prova_obj.materia,
+                "ano_semestre": prova_obj.ano_semestre,
+                "numero_avaliacao": prova_obj.numero_avaliacao,
+                "warning": warning,
+            }
+        )
 
 
 class ProfessorsPartialView(View):
