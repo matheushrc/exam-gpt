@@ -12,6 +12,7 @@ from django.views.generic import TemplateView
 from drf_spectacular.utils import extend_schema
 from pydantic_ai import Tool
 from pydantic_ai.agent import Agent
+from pydantic_ai.messages import ModelMessage, ModelMessagesTypeAdapter
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -149,11 +150,13 @@ async def _generate_answer(
     temperature: float,
     max_tokens: int,
     tools: list[Tool] | None,
-) -> str:
+    message_history: list[ModelMessage] | None = None,
+):
     client = GoogleAgent(api_key=api_key)
     agent = _make_chat_agent(client, model_name, temperature, max_tokens, tools)
-    result = await client.get_inference_async(agent=agent, user_prompt=user_prompt)
-    return result.output
+    return await client.get_inference_async(
+        agent=agent, user_prompt=user_prompt, message_history=message_history
+    )
 
 
 def _serialize_sources(collected: list) -> list[dict]:
@@ -201,7 +204,25 @@ def _parse_chat_request(data: dict) -> dict | None:
         "temperature": float(data.get("temperature") or chat_settings.DEFAULT_TEMPERATURE),
         "max_tokens": int(data.get("max_tokens") or chat_settings.DEFAULT_MAX_TOKENS),
         "grounding": bool(data.get("grounding", True)),
+        "message_history": _deserialize_message_history(data.get("message_history")),
     }
+
+
+def _deserialize_message_history(raw: list | None) -> list[ModelMessage] | None:
+    """Rebuilds pydantic-ai's message history from the JSON list the client
+    echoes back. The client holds this in memory only (no server-side
+    conversation storage), so on malformed input we just drop the history
+    instead of failing the request."""
+    if not raw:
+        return None
+    try:
+        return ModelMessagesTypeAdapter.validate_json(json.dumps(raw))
+    except Exception:
+        return None
+
+
+def _serialize_message_history(result) -> list:
+    return json.loads(result.all_messages_json())
 
 
 def _resolve_api_key(request, data: dict) -> str | None:
@@ -262,13 +283,19 @@ def _stream_chat_events(
     max_tokens: int,
     tools: list[Tool] | None,
     collected: list,
+    message_history: list[ModelMessage] | None = None,
 ):
+    history_holder: list = []
+
     async def agen():
         client = GoogleAgent(api_key=api_key)
         agent = _make_chat_agent(client, model_name, temperature, max_tokens, tools)
-        async with client.run_stream(agent=agent, user_prompt=message) as result:
+        async with client.run_stream(
+            agent=agent, user_prompt=message, message_history=message_history
+        ) as result:
             async for delta in result.stream_text(delta=True):
                 yield delta
+            history_holder.append(_serialize_message_history(result))
 
     try:
         for delta in _run_async_generator_sync(agen):
@@ -278,7 +305,8 @@ def _stream_chat_events(
         return
 
     sources = _serialize_sources(collected)
-    yield f"data: {json.dumps({'type': 'done', 'sources': sources})}\n\n"
+    history = history_holder[0] if history_holder else []
+    yield f"data: {json.dumps({'type': 'done', 'sources': sources, 'message_history': history})}\n\n"
 
 
 class ChatMessageView(APIView):
@@ -315,8 +343,9 @@ class ChatMessageView(APIView):
                 )
             ]
 
+        history = params["message_history"] or []
         try:
-            answer = asyncio.run(
+            result = asyncio.run(
                 _generate_answer(
                     params["message"],
                     api_key=api_key,
@@ -324,14 +353,24 @@ class ChatMessageView(APIView):
                     temperature=params["temperature"],
                     max_tokens=params["max_tokens"],
                     tools=tools,
+                    message_history=params["message_history"],
                 )
             )
+            answer = result.output
+            history = _serialize_message_history(result)
         except Exception as exc:
             answer = f"Ocorreu um erro ao gerar a resposta: {exc}"
 
         sources = _serialize_sources(collected)
 
-        return Response({"query": params["message"], "answer": answer, "sources": sources})
+        return Response(
+            {
+                "query": params["message"],
+                "answer": answer,
+                "sources": sources,
+                "message_history": history,
+            }
+        )
 
 
 @method_decorator(csrf_exempt, name="dispatch")
@@ -378,6 +417,7 @@ class ChatStreamView(View):
                 max_tokens=params["max_tokens"],
                 tools=tools,
                 collected=collected,
+                message_history=params["message_history"],
             ),
             content_type="text/event-stream",
         )

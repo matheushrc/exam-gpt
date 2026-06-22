@@ -142,6 +142,7 @@ class ChatMessageViewTests(TestCase):
 
         mock_result = mock.Mock()
         mock_result.output = "Resposta gerada pelo modelo."
+        mock_result.all_messages_json.return_value = b"[]"
 
         async def fake_get_inference_async(agent, user_prompt, **kwargs):
             # Simulate the model deciding to call the retrieve_exams tool.
@@ -178,6 +179,7 @@ class ChatMessageViewTests(TestCase):
     ):
         mock_result = mock.Mock()
         mock_result.output = "Resposta gerada pelo modelo."
+        mock_result.all_messages_json.return_value = b"[]"
 
         async def fake_get_inference_async(**kwargs):
             return mock_result

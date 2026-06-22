@@ -3,6 +3,11 @@
 
   var isLoading = false;
 
+  // In-memory only: holds pydantic-ai's serialized message history for this
+  // page session so follow-up questions can reference earlier turns. Lost on
+  // reload by design — there's no server-side conversation storage.
+  var conversationHistory = null;
+
   // Sidebar collapse, the appearance menu, and the model-settings modal live in
   // shell.js (shared with the upload screen). chat.js only owns the right-hand
   // conversation panel and the transcript.
@@ -298,6 +303,7 @@
       similarity_threshold: settings.similarity,
       temperature: settings.temperature,
       max_tokens: settings.maxTokens,
+      message_history: conversationHistory,
     };
 
     var bubble = null;
@@ -353,6 +359,7 @@
                 renderMarkdownInto(ensureBubble()._content, answerText);
                 scrollToBottom();
               } else if (event.type === "done") {
+                conversationHistory = event.message_history || null;
                 finishAssistantBubble(ensureBubble(), event.sources);
               } else if (event.type === "error") {
                 throw new Error(event.detail);
