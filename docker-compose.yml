@@ -45,6 +45,12 @@ services:
         - action: sync+restart
           path: ./templates
           target: /app/templates
+        - action: sync+restart
+          path: ./staticfiles
+          target: /app/staticfiles
+        - action: sync+restart
+          path: ./settings
+          target: /app/settings
 
 networks:
   internal:
