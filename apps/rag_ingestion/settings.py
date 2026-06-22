@@ -10,6 +10,7 @@ class EmbeddingsSettings(BaseSettings):
     EMBEDDING_MODEL: str = "gemini-embedding-2"
     EMBEDDING_DIMS: int = 768
     EXTRACTION_MODEL: str = "gemini-3.5-flash"
+    EXTRACTION_FALLBACK_MODEL: str = "gemini-3.1-flash-lite"
     INPUT_ROOT: str = f"{BASE_DIR}/input/provas"
     OUTPUT_ROOT: str = f"{BASE_DIR}/input/converted_provas"
 

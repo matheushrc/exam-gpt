@@ -30,6 +30,7 @@ def _build_system_prompt() -> str:
 def _make_agent(google_client: GoogleAgent, model_name: str) -> Agent:
     return google_client.create_agent(
         model_name=model_name,
+        fallback_model_names=[embeddings_settings.EXTRACTION_FALLBACK_MODEL],
         retries=10,
         output_type=ProvaComNome,
         model_settings={"max_tokens": 64000, "temperature": 0.0},

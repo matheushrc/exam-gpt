@@ -11,6 +11,7 @@ from pydantic_ai.models.google import GoogleModel
 from turbovec import IdMapIndex
 
 from apps.rag_ingestion.agents.Google import GoogleAgent
+from apps.rag_ingestion.extract import _make_agent
 from apps.rag_ingestion.models import Chunks, Prova, Questao
 from apps.rag_ingestion.embed import (
     DEFAULT_JSON_ROOT,
@@ -18,6 +19,7 @@ from apps.rag_ingestion.embed import (
     find_exam_json_files,
     load_exam_json,
 )
+from apps.rag_ingestion.settings import embeddings_settings
 from apps.rag_ingestion.vector_index import remove_turbo_ids
 
 
@@ -179,3 +181,20 @@ class GoogleAgentFallbackTests(SimpleTestCase):
         self.assertIsInstance(agent.model, FallbackModel)
         model_names = [m.model_name for m in agent.model.models]
         self.assertEqual(model_names, ["gemini-3.5-flash", "gemini-3.1-flash-lite"])
+
+
+class ExtractionAgentFallbackTests(SimpleTestCase):
+    def test_make_agent_falls_back_to_flash_lite(self):
+        client = GoogleAgent(api_key="fake-key")
+        agent = _make_agent(client, "gemini-3.5-flash")
+        self.assertIsInstance(agent.model, FallbackModel)
+        model_names = [m.model_name for m in agent.model.models]
+        self.assertEqual(
+            model_names,
+            ["gemini-3.5-flash", embeddings_settings.EXTRACTION_FALLBACK_MODEL],
+        )
+
+    def test_extraction_fallback_model_setting_defaults_to_flash_lite(self):
+        self.assertEqual(
+            embeddings_settings.EXTRACTION_FALLBACK_MODEL, "gemini-3.1-flash-lite"
+        )
