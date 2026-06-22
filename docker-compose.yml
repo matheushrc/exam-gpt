@@ -39,7 +39,12 @@ services:
           path: ./uv.lock
         - action: rebuild
           path: ./Dockerfile
-
+        - action: sync+restart
+          path: ./apps
+          target: /app/apps
+        - action: sync+restart
+          path: ./templates
+          target: /app/templates
 
 networks:
   internal:
