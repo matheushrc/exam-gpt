@@ -36,14 +36,10 @@ class QuestaoBase(BaseModel):
 
 
 class SubQuestao(QuestaoBase):
-    label: str = Field(
-        description="Rótulo da subquestão conforme aparece na prova.",
-        examples=["(a)", "(b)", "(c)"],
-    )
+    pass
 
 
 class Questao(QuestaoBase):
-    numero: int = Field(description="Número ordinal da questão na prova.", ge=1)
     subquestoes: list[SubQuestao] | None = Field(
         default=None,
         description="Subquestões da questão. Null se a questão não tiver subdivisões.",

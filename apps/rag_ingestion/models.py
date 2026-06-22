@@ -21,8 +21,8 @@ from django.db.models import (
 
 
 class Questao(Model):
-    numero = IntegerField(
-        help_text="Número ordinal da questão na prova.",
+    ordem = IntegerField(
+        help_text="Posição ordinal da questão, usada para reconstruir a ordem original — não é exibida ao usuário.",
     )
 
     enunciado = TextField(
@@ -48,7 +48,7 @@ class Questao(Model):
 
     class Meta:
         constraints: ClassVar[list] = [
-            UniqueConstraint(fields=["numero", "enunciado"], name="unique_questao"),
+            UniqueConstraint(fields=["ordem", "enunciado"], name="unique_questao"),
         ]
 
 
