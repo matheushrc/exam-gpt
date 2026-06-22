@@ -8,8 +8,9 @@ include `apps/rag_ingestion/`, `apps/rag_search/`, and `apps/schedule/`. Shared
 HTML templates are in `templates/`; app-specific templates may live inside each
 app, such as `apps/schedule/templates/`. Mongo migration snapshots are stored in
 `mongo_migrations/`. Research notes are numbered in `research/`, product ideas
-live in `IDEAS.md`, and sample inputs live in `input/`. Prompt assets live in
-`prompts/` and `apps/rag_ingestion/prompts/`.
+live in `IDEAS.md`, and sample inputs live in `input/`. Prompt assets live as
+Python modules near their agents, such as `apps/rag_ingestion/prompts/` and
+`apps/chat/prompts/`.
 
 ## Build, Test, and Development Commands
 

@@ -7,18 +7,14 @@ Called by:
 """
 
 import os
-from pathlib import Path
 
 from pydantic import BaseModel, Field, field_validator
 from pydantic_ai.agent import Agent
 
 from apps.rag_ingestion.agents.Google import GoogleAgent
 from apps.rag_ingestion.pdf_convert import InferenceType
-from apps.rag_ingestion.prompts import EXAM_PROMPT
+from apps.rag_ingestion.prompts import EXAM_PROMPT, NAMING_PATTERN_PROMPT
 from apps.rag_ingestion.schemas.prova import Prova
-from settings.settings import BASE_DIR
-
-NAMING_PROMPT_PATH = Path(BASE_DIR) / "prompts" / "files" / "naming_pattern.prompt.md"
 
 DEFAULT_EXTRACTION_MODEL = "gemini-3.5-flash"
 
@@ -58,8 +54,10 @@ FILE_NAME_PROMPT = """
 
 
 def _build_system_prompt() -> str:
-    naming = NAMING_PROMPT_PATH.read_text(encoding="utf-8")
-    return f"{EXAM_PROMPT.strip()}\n\n{naming.strip()}\n\n{FILE_NAME_PROMPT.strip()}"
+    return (
+        f"{EXAM_PROMPT.strip()}\n\n{NAMING_PATTERN_PROMPT.strip()}\n\n"
+        f"{FILE_NAME_PROMPT.strip()}"
+    )
 
 
 def _make_agent(google_client: GoogleAgent, model_name: str) -> Agent:
