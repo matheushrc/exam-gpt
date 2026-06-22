@@ -156,6 +156,29 @@ class UploadViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertIn("boom", response.context["error"])
 
+    def test_post_extraction_failure_logs_via_loguru(self):
+        from loguru import logger
+
+        async def failing_extract(*args, **kwargs):
+            raise RuntimeError("boom")
+
+        records = []
+        sink_id = logger.add(records.append, format="{message}")
+        try:
+            with mock.patch(
+                "apps.upload.views.extract_exam_from_images",
+                side_effect=failing_extract,
+            ):
+                img = self._make_upload_file("p1.jpg", b"\xff\xd8fake")
+                self.client.post(
+                    reverse("upload"), data={"files": img}, format="multipart"
+                )
+        finally:
+            logger.remove(sink_id)
+
+        messages = [r.record["message"] for r in records]
+        self.assertIn("Exam extraction failed: boom", messages)
+
     @staticmethod
     def _make_upload_file(name: str, content: bytes):
         from django.core.files.uploadedfile import SimpleUploadedFile

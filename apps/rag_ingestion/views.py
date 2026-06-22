@@ -1,7 +1,7 @@
 import asyncio
 import base64
-import logging
 
+from loguru import logger
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
@@ -12,8 +12,6 @@ from apps.rag_ingestion.embed import (
     upsert_exam,
 )
 from apps.rag_ingestion.extract import extract_exam_from_images, extract_exam_from_pdf
-
-logger = logging.getLogger(__name__)
 
 
 class ProvaExtractAPIView(APIView):
@@ -56,7 +54,7 @@ class ProvaExtractAPIView(APIView):
             else:
                 raise ValueError("No files or camera images provided.")
         except (ValueError, RuntimeError) as exc:
-            logger.warning("Exam extraction failed: %s", exc)
+            logger.warning(f"Exam extraction failed: {exc}")
             return Response({"detail": str(exc)}, status=400)
         except Exception as exc:  # noqa: BLE001
             logger.exception("Unexpected error during exam extraction")

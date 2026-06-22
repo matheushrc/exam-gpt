@@ -1,11 +1,11 @@
 import base64
 import json
-import logging
 
 from django.http import Http404
 from django.shortcuts import redirect, render
 from django.urls import reverse
 from django.views import View
+from loguru import logger
 
 from apps.chat.cache import get_professors_for_materia, get_professors_for_semester
 from apps.rag_ingestion.embed import (
@@ -22,8 +22,6 @@ from apps.upload.session import (
     new_session_id,
     set_wizard_data,
 )
-
-logger = logging.getLogger(__name__)
 
 
 class UploadView(View):
@@ -62,7 +60,7 @@ class UploadView(View):
             else:
                 raise ValueError("No files or camera images provided.")
         except (ValueError, RuntimeError) as exc:
-            logger.warning("Exam extraction failed: %s", exc)
+            logger.warning(f"Exam extraction failed: {exc}")
             return render(
                 request,
                 "upload/step1_upload.html",

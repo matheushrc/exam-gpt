@@ -238,3 +238,28 @@ class SeedExamJsonsLoggingTests(SimpleTestCase):
         )
         self.assertIn("Generating embeddings for 1 questions...", messages)
         self.assertEqual(result.chunks, 2)
+
+
+class ProvaExtractAPIViewLoggingTests(TestCase):
+    def test_post_extraction_failure_logs_via_loguru(self):
+        async def failing_extract(*args, **kwargs):
+            raise RuntimeError("boom")
+
+        records = []
+        sink_id = logger.add(records.append, format="{message}")
+        try:
+            with patch(
+                "apps.rag_ingestion.views.extract_exam_from_images",
+                side_effect=failing_extract,
+            ):
+                response = self.client.post(
+                    "/api/provas/extract/",
+                    data={"camera_images": ["aGVsbG8="]},
+                    content_type="application/json",
+                )
+        finally:
+            logger.remove(sink_id)
+
+        self.assertEqual(response.status_code, 400)
+        messages = [r.record["message"] for r in records]
+        self.assertIn("Exam extraction failed: boom", messages)
