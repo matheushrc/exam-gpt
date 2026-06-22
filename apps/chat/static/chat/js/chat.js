@@ -54,13 +54,13 @@
 
     if (toggle && panel) {
       toggle.addEventListener("click", function () {
-        panel.classList.toggle("hidden");
-        toggle.classList.toggle("active", !panel.classList.contains("hidden"));
+        panel.classList.toggle("collapsed");
+        toggle.classList.toggle("active", !panel.classList.contains("collapsed"));
       });
     }
     if (closeBtn && panel && toggle) {
       closeBtn.addEventListener("click", function () {
-        panel.classList.add("hidden");
+        panel.classList.add("collapsed");
         toggle.classList.remove("active");
       });
     }

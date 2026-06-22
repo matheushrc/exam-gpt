@@ -798,34 +798,34 @@ dev = [
 
 [package.metadata]
 requires-dist = [
-    { name = "beautifulsoup4", specifier = ">=4.14.3" },
-    { name = "django", specifier = ">=6.0.3" },
+    { name = "beautifulsoup4", specifier = ">=4.15.0" },
+    { name = "django", specifier = ">=6.0.6" },
     { name = "django-browser-reload", specifier = ">=1.21.0" },
     { name = "django-htmx", specifier = ">=1.27.0" },
     { name = "django-mongodb-backend", specifier = ">=6.0.3" },
     { name = "django-watchfiles", specifier = ">=1.4.0" },
     { name = "djangorestframework", specifier = ">=3.17.1" },
-    { name = "djlint", specifier = ">=1.36.4" },
+    { name = "djlint", specifier = ">=1.39.2" },
     { name = "drf-spectacular", specifier = ">=0.29.0" },
     { name = "loguru", specifier = ">=0.7.3" },
-    { name = "numpy", specifier = ">=2.4.6" },
+    { name = "numpy", specifier = ">=2.5.0" },
     { name = "pillow", specifier = ">=12.2.0" },
-    { name = "pydantic", specifier = ">=2.13.3" },
-    { name = "pydantic-ai-slim", extras = ["google", "openai"], specifier = ">=1.89.0" },
-    { name = "pydantic-settings", specifier = ">=2.14.1" },
+    { name = "pydantic", specifier = ">=2.13.4" },
+    { name = "pydantic-ai-slim", extras = ["google", "openai"], specifier = ">=1.107.0" },
+    { name = "pydantic-settings", specifier = ">=2.14.2" },
     { name = "pymupdf", specifier = ">=1.27.2.3" },
     { name = "python-dotenv", specifier = ">=1.2.2" },
     { name = "refinedoc", specifier = ">=1.0.1" },
-    { name = "requests", specifier = ">=2.33.1" },
-    { name = "ruff", specifier = ">=0.15.12" },
+    { name = "requests", specifier = ">=2.34.2" },
+    { name = "ruff", specifier = ">=0.15.18" },
     { name = "sqlite-vec", specifier = ">=0.1.9" },
-    { name = "turbovec", specifier = ">=0.7.0" },
-    { name = "ty", specifier = ">=0.0.33" },
+    { name = "turbovec", specifier = ">=0.8.0" },
+    { name = "ty", specifier = ">=0.0.51" },
     { name = "whitenoise", specifier = ">=6.12.0" },
 ]
 
 [package.metadata.requires-dev]
-dev = [{ name = "django-stubs", specifier = ">=6.0.3" }]
+dev = [{ name = "django-stubs", specifier = ">=6.0.5" }]
 
 [[package]]
 name = "pyasn1"
