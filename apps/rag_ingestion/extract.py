@@ -24,7 +24,9 @@ DEFAULT_EXTRACTION_MODEL = "gemini-3.5-flash"
 
 
 class ExamFileName(BaseModel):
-    disciplina: str = Field(description="Pasta da disciplina, sem acento, em kebab-case.")
+    disciplina: str = Field(
+        description="Pasta da disciplina, sem acento, em kebab-case."
+    )
     nome_arquivo: str = Field(
         description="Nome do arquivo JSON no padrão de nomes da prova.",
         pattern=r"^\d{4}-\d{2}-\d{2}_np\d+(?:_rec)?(?:_p\d+)?_[a-z0-9]+(?:[._-][a-z0-9]+)*\.json$",

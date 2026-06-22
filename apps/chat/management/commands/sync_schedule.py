@@ -30,7 +30,9 @@ class Command(BaseCommand):
         CACHE_ROOT.mkdir(parents=True, exist_ok=True)
         with (CACHE_ROOT / "semesters.json").open("w", encoding="utf-8") as f:
             json.dump(semesters, f, ensure_ascii=False)
-        self.stdout.write(f"Saved {len(semesters)} semesters to {CACHE_ROOT / 'semesters.json'}")
+        self.stdout.write(
+            f"Saved {len(semesters)} semesters to {CACHE_ROOT / 'semesters.json'}"
+        )
 
         target_semesters = [semester] if semester else semesters
 
@@ -62,7 +64,9 @@ class Command(BaseCommand):
         groups = groups_response.json()
         with (semester_dir / "groups.json").open("w", encoding="utf-8") as f:
             json.dump(groups, f, ensure_ascii=False)
-        self.stdout.write(f"  Saved {len(groups)} groups to {semester_dir / 'groups.json'}")
+        self.stdout.write(
+            f"  Saved {len(groups)} groups to {semester_dir / 'groups.json'}"
+        )
 
         schedule_url = SCHEDULE_ENDPOINT.format(semester=semester)
         schedule_response = requests.get(schedule_url)
@@ -70,4 +74,6 @@ class Command(BaseCommand):
         schedule = schedule_response.json()
         with (semester_dir / "schedule.json").open("w", encoding="utf-8") as f:
             json.dump(schedule, f, ensure_ascii=False)
-        self.stdout.write(f"  Saved {len(schedule)} schedule entries to {semester_dir / 'schedule.json'}")
+        self.stdout.write(
+            f"  Saved {len(schedule)} schedule entries to {semester_dir / 'schedule.json'}"
+        )

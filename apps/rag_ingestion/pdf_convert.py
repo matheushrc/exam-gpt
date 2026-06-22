@@ -66,7 +66,7 @@ class PDFBodyAnalyzer:
                 and analysis["ratio"] > uniqueness_ratio
             ):
                 return True, document_text, "TEXT"
-        except (OSError, ValueError, AttributeError):
+        except OSError, ValueError, AttributeError:
             return False, "", "IMAGE"
         return False, "", "IMAGE"
 
@@ -108,7 +108,7 @@ def _extract_or_render_page(
             try:
                 image = Image.open(io.BytesIO(base_image["image"]))
                 return _save_image_optimized(image, quality, grayscale)
-            except (OSError, ValueError):
+            except OSError, ValueError:
                 pass
     return _render_page(page, quality, grayscale)
 
@@ -131,7 +131,9 @@ def convert_pdf(pdf_bytes: bytes) -> tuple[InferenceType, str | list[bytes]]:
     for page in fitz_doc:  # type: ignore
         image_list = page.get_images(full=True)
         pages.append(
-            _extract_or_render_page(fitz_doc, page, image_list, quality=85, grayscale=False)
+            _extract_or_render_page(
+                fitz_doc, page, image_list, quality=85, grayscale=False
+            )
         )
     fitz_doc.close()
     return inference_type, pages

@@ -39,7 +39,10 @@ PDF_EXTENSION = ".pdf"
 
 def safe_segment(value: str) -> str:
     normalized = (
-        unicodedata.normalize("NFKD", value).encode("ascii", "ignore").decode("ascii").lower()
+        unicodedata.normalize("NFKD", value)
+        .encode("ascii", "ignore")
+        .decode("ascii")
+        .lower()
     )
     normalized = re.sub(r"[^a-z0-9._-]+", "-", normalized).strip(".-_")
     if not normalized or normalized in {".", ".."}:
@@ -148,7 +151,8 @@ class Command(BaseCommand):
         self.stdout.write(f"Found {len(folders)} folder(s) and {len(pdfs)} PDF(s).")
         semaphore = asyncio.Semaphore(options["concurrency"])
         tasks = [
-            _process_folder(f, options["model"], semaphore, self.stdout) for f in folders
+            _process_folder(f, options["model"], semaphore, self.stdout)
+            for f in folders
         ] + [_process_pdf(p, options["model"], semaphore, self.stdout) for p in pdfs]
         results = asyncio.run(asyncio.gather(*tasks))
         self.stdout.write(self.style.SUCCESS(f"Wrote {len(results)} JSON file(s)."))

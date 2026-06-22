@@ -18,7 +18,9 @@ class WizardSessionTests(TestCase):
         self.assertEqual(wizard_session.get_wizard_data(self.request, "missing"), {})
 
     def test_set_then_get_round_trips_data(self):
-        wizard_session.set_wizard_data(self.request, "abc", {"prova": {"materia": "Redes"}})
+        wizard_session.set_wizard_data(
+            self.request, "abc", {"prova": {"materia": "Redes"}}
+        )
 
         self.assertEqual(
             wizard_session.get_wizard_data(self.request, "abc"),
@@ -32,10 +34,14 @@ class WizardSessionTests(TestCase):
         wizard_session.clear_wizard_data(self.request, "abc")
 
         self.assertEqual(wizard_session.get_wizard_data(self.request, "abc"), {})
-        self.assertEqual(wizard_session.get_wizard_data(self.request, "def"), {"prova": {}})
+        self.assertEqual(
+            wizard_session.get_wizard_data(self.request, "def"), {"prova": {}}
+        )
 
     def test_new_session_id_is_unique(self):
-        self.assertNotEqual(wizard_session.new_session_id(), wizard_session.new_session_id())
+        self.assertNotEqual(
+            wizard_session.new_session_id(), wizard_session.new_session_id()
+        )
 
 
 class MetaFormTests(TestCase):
@@ -295,7 +301,9 @@ class ReviewViewTests(TestCase):
     def test_post_saves_edits_and_redirects_home(self):
         with (
             mock.patch("apps.upload.views.get_client", return_value=mock.Mock()),
-            mock.patch("apps.upload.views.get_embeddings_batch", return_value=[[0.1], [0.2]]),
+            mock.patch(
+                "apps.upload.views.get_embeddings_batch", return_value=[[0.1], [0.2]]
+            ),
             mock.patch("apps.upload.views.rebuild_vector_index", return_value=2),
         ):
             response = self.client.post(
@@ -313,7 +321,9 @@ class ReviewViewTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertEqual(response.url, "/")
 
-        prova = Prova.objects.get(materia="Calculo", ano_semestre="2026.1", numero_avaliacao=1)
+        prova = Prova.objects.get(
+            materia="Calculo", ano_semestre="2026.1", numero_avaliacao=1
+        )
         self.assertEqual(prova.professor, "Jane Doe")
 
         questao = Questao.objects.get(numero=1, enunciado="Enunciado editado")
@@ -330,7 +340,9 @@ class ReviewViewTests(TestCase):
 
     def test_post_continues_and_warns_when_embedding_step_fails(self):
         with (
-            mock.patch("apps.upload.views.get_client", side_effect=RuntimeError("no api key")),
+            mock.patch(
+                "apps.upload.views.get_client", side_effect=RuntimeError("no api key")
+            ),
         ):
             response = self.client.post(
                 reverse("upload-review", args=[self.session_id]),
@@ -365,7 +377,8 @@ class ProfessorsPartialViewTests(TestCase):
             "apps.upload.views.get_professors_for_materia", return_value=fake_professors
         ) as materia_mock:
             response = self.client.get(
-                reverse("upload-professors"), {"semester": "2026.1", "materia": "Calculo"}
+                reverse("upload-professors"),
+                {"semester": "2026.1", "materia": "Calculo"},
             )
 
         materia_mock.assert_called_once_with("2026.1", "Calculo")
@@ -374,9 +387,12 @@ class ProfessorsPartialViewTests(TestCase):
     def test_falls_back_to_semester_only_lookup(self):
         fake_professors = [{"username": "c.d", "name": "C D"}]
         with mock.patch(
-            "apps.upload.views.get_professors_for_semester", return_value=fake_professors
+            "apps.upload.views.get_professors_for_semester",
+            return_value=fake_professors,
         ) as semester_mock:
-            response = self.client.get(reverse("upload-professors"), {"semester": "2026.1"})
+            response = self.client.get(
+                reverse("upload-professors"), {"semester": "2026.1"}
+            )
 
         semester_mock.assert_called_once_with("2026.1")
         self.assertEqual(response.context["professores"], fake_professors)

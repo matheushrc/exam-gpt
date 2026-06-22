@@ -163,7 +163,7 @@ REST_FRAMEWORK = {
 }
 
 SPECTACULAR_SETTINGS = {
-    "TITLE": "Provas GPT API",
+    "TITLE": "Exam GPT API",
     "DESCRIPTION": "API for fetching UFFS schedule data",
     "VERSION": "1.0.0",
     "SORT_OPERATION_PARAMETERS": False,

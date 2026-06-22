@@ -13,7 +13,9 @@ class SearchViewTests(SimpleTestCase):
         response = self.client.get(reverse("search"))
 
         self.assertEqual(response.status_code, 400)
-        self.assertEqual(response.json(), {"detail": "Query parameter 'q' is required."})
+        self.assertEqual(
+            response.json(), {"detail": "Query parameter 'q' is required."}
+        )
 
     def test_search_rejects_invalid_top_k(self) -> None:
         response = self.client.get(reverse("search"), {"q": "tcp", "top_k": "many"})

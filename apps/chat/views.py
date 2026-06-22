@@ -164,9 +164,7 @@ class ChatMessageView(APIView):
     def post(self, request):
         message = (request.data.get("message") or "").strip()
         if not message:
-            return Response(
-                {"detail": "O campo 'message' é obrigatório."}, status=400
-            )
+            return Response({"detail": "O campo 'message' é obrigatório."}, status=400)
 
         materia = request.data.get("materia") or None
         top_k = int(request.data.get("top_k") or chat_settings.DEFAULT_TOP_K)

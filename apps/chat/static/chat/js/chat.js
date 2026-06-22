@@ -225,7 +225,7 @@
     header.className = "assistant-header";
     header.innerHTML =
       '<div class="assistant-avatar">PG</div>' +
-      '<span class="assistant-label">Provas GPT responde</span>';
+      '<span class="assistant-label">Exam GPT responde</span>';
     bubble.appendChild(header);
 
     var content = document.createElement("div");

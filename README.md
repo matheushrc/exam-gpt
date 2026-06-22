@@ -1,4 +1,4 @@
-# Provas GPT
+# Exam GPT
 
 Projeto Django para extrair dados estruturados de provas e usar embeddings para
 busca e apoio ao estudo.

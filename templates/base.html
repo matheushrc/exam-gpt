@@ -5,7 +5,7 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <title>
-            {% block title %}Provas GPT{% endblock %}
+            {% block title %}Exam GPT{% endblock %}
         </title>
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,12 +17,16 @@
         <link rel="stylesheet" href="{% static 'css/base.css' %}">
         {% block extra_css %}
         {% endblock extra_css %}
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/htmx.org/1.9.12/htmx.min.js" defer></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js" defer></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/htmx.org/1.9.12/htmx.min.js"
+                defer></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"
+                defer></script>
         <link rel="stylesheet"
               href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.css">
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js" defer></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js" defer></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/katex.min.js"
+                defer></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.9/contrib/auto-render.min.js"
+                defer></script>
     </head>
     <body class="{% block body_class %}{% endblock body_class %}">
         {% block content %}
