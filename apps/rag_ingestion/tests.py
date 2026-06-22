@@ -6,8 +6,11 @@ from unittest.mock import patch
 from django.test import SimpleTestCase
 from django.test import TestCase
 import numpy as np
+from pydantic_ai.models.fallback import FallbackModel
+from pydantic_ai.models.google import GoogleModel
 from turbovec import IdMapIndex
 
+from apps.rag_ingestion.agents.Google import GoogleAgent
 from apps.rag_ingestion.models import Chunks, Prova, Questao
 from apps.rag_ingestion.embed import (
     DEFAULT_JSON_ROOT,
@@ -158,3 +161,21 @@ class ProvaQuestaoNovosCamposTests(TestCase):
             questoes=[],
         )
         self.assertEqual(p.ano_semestre, "2026.1")
+
+
+class GoogleAgentFallbackTests(SimpleTestCase):
+    def test_create_agent_without_fallback_uses_plain_google_model(self):
+        client = GoogleAgent(api_key="fake-key")
+        agent = client.create_agent(model_name="gemini-3.5-flash")
+        self.assertIsInstance(agent.model, GoogleModel)
+        self.assertEqual(agent.model.model_name, "gemini-3.5-flash")
+
+    def test_create_agent_with_fallback_wraps_in_fallback_model(self):
+        client = GoogleAgent(api_key="fake-key")
+        agent = client.create_agent(
+            model_name="gemini-3.5-flash",
+            fallback_model_names=["gemini-3.1-flash-lite"],
+        )
+        self.assertIsInstance(agent.model, FallbackModel)
+        model_names = [m.model_name for m in agent.model.models]
+        self.assertEqual(model_names, ["gemini-3.5-flash", "gemini-3.1-flash-lite"])

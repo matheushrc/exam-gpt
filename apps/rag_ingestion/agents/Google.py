@@ -3,6 +3,7 @@ from typing import Any
 from google import genai
 from pydantic import BaseModel
 from pydantic_ai import Agent, BinaryContent, Tool
+from pydantic_ai.models.fallback import FallbackModel
 from pydantic_ai.models.google import GoogleModel, GoogleModelSettings
 from pydantic_ai.providers.google import GoogleProvider
 
@@ -20,6 +21,7 @@ class GoogleAgent:
         self,
         output_type: type[BaseModel] | None = None,
         model_name: str = "us.anthropic.claude-3-7-sonnet-20250219-v1:0",
+        fallback_model_names: list[str] | None = None,
         retries: int = 3,
         model_settings: dict[str, Any] | None = None,
         system_prompt: str | None = None,
@@ -27,10 +29,11 @@ class GoogleAgent:
         **kwargs: Any,
     ) -> Agent:
         agent_kwargs: dict[str, Any] = {
-            "output_type": output_type,
             "retries": retries,
         }
 
+        if output_type is not None:
+            agent_kwargs["output_type"] = output_type
         if system_prompt is not None:
             agent_kwargs["system_prompt"] = system_prompt
         if model_settings:
@@ -38,13 +41,20 @@ class GoogleAgent:
         if tools:
             agent_kwargs["tools"] = tools
 
+        def _google_model(name: str) -> GoogleModel:
+            return GoogleModel(
+                model_name=name,
+                provider=GoogleProvider(client=self.provider),
+            )
+
+        model: GoogleModel | FallbackModel = _google_model(model_name)
+        if fallback_model_names:
+            model = FallbackModel(
+                model, *(_google_model(name) for name in fallback_model_names)
+            )
+
         return Agent(
-            GoogleModel(
-                model_name=model_name,
-                provider=GoogleProvider(
-                    client=self.provider,
-                ),
-            ),
+            model,
             **agent_kwargs,
             **kwargs,
         )
