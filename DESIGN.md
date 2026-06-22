@@ -376,6 +376,7 @@ Rendering uses [marked](https://marked.js.org) + [KaTeX](https://katex.org)
 | `apps/upload/static/upload/css/markdown-editor.css`   | Review markdown field tabs/textarea/preview                     |
 | `apps/upload/static/upload/css/question-editor.css`   | Question editor, grades, subquestions, add buttons              |
 | `apps/upload/static/upload/css/responsive.css`        | ≤640px mobile overrides (upload screen)                         |
+| `apps/upload/static/upload/css/upload.css`            | No-JS fallback wizard (`step1_upload.html`/`step2_meta.html`/`step3_review.html`), used when the client-side JSON flow can't run |
 
 > Note: `staticfiles/` holds the **source** static assets served by Django's
 > staticfiles finders in `DEBUG`. `static_collected/` is `collectstatic` output

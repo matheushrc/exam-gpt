@@ -117,3 +117,10 @@ When a concern in `CONCERNS.md` gets resolved, delete that entry instead of
 marking it "RESOLVED" or leaving a note about the fix — the git history
 already has that. Keeping resolved entries around just makes the file grow
 unboundedly, which costs tokens every time it's read.
+
+Whenever a code change affects the architecture or behavior described in
+`DESIGN.md`, update `DESIGN.md` in the same change — don't let it drift out
+of sync with the actual codebase. Likewise, if a change reveals a new issue
+worth tracking, add it to `CONCERNS.md`; if it resolves an existing one,
+delete that entry (per the rule above). Do this proactively as part of the
+change, not only when asked.
