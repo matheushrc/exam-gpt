@@ -62,17 +62,17 @@ def load_exam_json(path: Path) -> dict[str, Any]:
 def format_subquestoes(subquestoes: list | None) -> str:
     if not subquestoes:
         return ""
-    return "\n".join(f"{s['label']} {s['enunciado']}" for s in subquestoes)
+    return "\n".join(s["enunciado"] for s in subquestoes)
 
 
 def build_chunk(
     materia: str,
-    numero: int,
+    ordem: int,
     enunciado: str,
     subquestoes: list | None,
     resposta: str | None,
 ) -> str:
-    parts = [f"task: search result | title: {materia} - Questão {numero} | text:"]
+    parts = [f"task: search result | title: {materia} - Questão {ordem} | text:"]
     parts.append(enunciado)
     sub_text = format_subquestoes(subquestoes)
     if sub_text:
@@ -117,22 +117,28 @@ def upsert_exam(data: dict[str, Any]) -> tuple[Prova, list[Questao], list[str]]:
 
     questoes: list[Questao] = []
     chunk_texts: list[str] = []
-    for q_data in data["questoes"]:
+    for ordem, q_data in enumerate(data["questoes"], start=1):
+        subquestoes = q_data.get("subquestoes") or []
+        defaults = {
+            "subquestoes": subquestoes,
+            "resposta": q_data.get("resposta"),
+            "pontuacao": q_data.get("pontuacao"),
+            "nota_recebida": q_data.get("nota_recebida"),
+        }
+        if subquestoes:
+            defaults["resposta"] = None
+            defaults["nota_recebida"] = None
+
         questao, _ = Questao.objects.update_or_create(
-            numero=q_data["numero"],
+            ordem=ordem,
             enunciado=q_data["enunciado"],
-            defaults={
-                "subquestoes": q_data.get("subquestoes") or [],
-                "resposta": q_data.get("resposta"),
-                "pontuacao": q_data.get("pontuacao"),
-                "nota_recebida": q_data.get("nota_recebida"),
-            },
+            defaults=defaults,
         )
         questoes.append(questao)
         chunk_texts.append(
             build_chunk(
                 materia=data["materia"],
-                numero=q_data["numero"],
+                ordem=ordem,
                 enunciado=q_data["enunciado"],
                 subquestoes=q_data.get("subquestoes"),
                 resposta=q_data.get("resposta"),
