@@ -57,5 +57,4 @@ def configure_logging(debug: bool) -> None:
         ),
     )
 
-    logging.basicConfig(handlers=[InterceptHandler()], level=0, force=True)
-    logging.getLogger("pymongo").setLevel(logging.WARNING)
+    logging.basicConfig(handlers=[InterceptHandler()], level=logging.WARNING, force=True)

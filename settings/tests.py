@@ -44,3 +44,17 @@ class LoggingConfigTests(SimpleTestCase):
         messages = [r.record["message"] for r in records]
         self.assertNotIn("Command started", messages)
         self.assertIn("a real pymongo warning", messages)
+
+    def test_third_party_debug_noise_is_suppressed_regardless_of_debug_flag(self):
+        configure_logging(debug=True)
+        records = []
+        sink_id = logger.add(records.append, format="{message}")
+        try:
+            logging.getLogger("some.other.chatty.lib").debug("internal debug noise")
+            logging.getLogger("some.other.chatty.lib").warning("a real warning")
+        finally:
+            logger.remove(sink_id)
+
+        messages = [r.record["message"] for r in records]
+        self.assertNotIn("internal debug noise", messages)
+        self.assertIn("a real warning", messages)
