@@ -132,7 +132,7 @@ label {
     color: var(--color-text);
 }
 
-input,
+input:not([type="range"]),
 select,
 textarea {
     min-height: 44px;
@@ -145,6 +145,10 @@ textarea {
     border-radius: var(--radius-sm);
     width: 100%;
     transition: border-color var(--transition-fast);
+}
+
+input[type="range"] {
+    width: 100%;
 }
 
 textarea {
