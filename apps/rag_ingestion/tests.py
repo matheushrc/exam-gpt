@@ -1,11 +1,12 @@
 import json
 import tempfile
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import Mock, patch
 
 from django.test import SimpleTestCase
 from django.test import TestCase
 import numpy as np
+from loguru import logger
 from pydantic_ai.models.fallback import FallbackModel
 from pydantic_ai.models.google import GoogleModel
 from turbovec import IdMapIndex
@@ -198,3 +199,42 @@ class ExtractionAgentFallbackTests(SimpleTestCase):
         self.assertEqual(
             embeddings_settings.EXTRACTION_FALLBACK_MODEL, "gemini-3.1-flash-lite"
         )
+
+
+class SeedExamJsonsLoggingTests(SimpleTestCase):
+    @patch("apps.rag_ingestion.embed.rebuild_vector_index", return_value=2)
+    @patch(
+        "apps.rag_ingestion.embed.get_embeddings_batch",
+        return_value=[[0.1], [0.2]],
+    )
+    @patch("apps.rag_ingestion.embed.upsert_exam")
+    @patch("apps.rag_ingestion.embed.load_exam_json", return_value={"questoes": []})
+    @patch("apps.rag_ingestion.embed.find_exam_json_files")
+    def test_seed_exam_jsons_logs_via_loguru_not_print(
+        self,
+        find_mock,
+        load_mock,
+        upsert_mock,
+        embeddings_mock,
+        rebuild_mock,
+    ):
+        from apps.rag_ingestion.embed import PROJECT_ROOT, seed_exam_jsons
+
+        json_file = PROJECT_ROOT / "input" / "converted_provas" / "calc.json"
+        find_mock.return_value = [json_file]
+        fake_prova = Mock(materia="CÁLCULO")
+        upsert_mock.return_value = (fake_prova, ["q1"], ["chunk text"])
+
+        records = []
+        sink_id = logger.add(records.append, format="{message}")
+        try:
+            result = seed_exam_jsons(json_root=Path("unused"), client=Mock())
+        finally:
+            logger.remove(sink_id)
+
+        messages = [r.record["message"] for r in records]
+        self.assertIn(
+            "Loaded input/converted_provas/calc.json -> CÁLCULO", messages
+        )
+        self.assertIn("Generating embeddings for 1 questions...", messages)
+        self.assertEqual(result.chunks, 2)

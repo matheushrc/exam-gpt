@@ -17,6 +17,7 @@ django.setup()
 
 from google import genai
 from google.genai import types
+from loguru import logger
 
 from apps.rag_ingestion.models import Chunks, Prova, Questao
 from apps.rag_ingestion.settings import embeddings_settings
@@ -190,9 +191,9 @@ def seed_exam_jsons(
         prova, questoes, chunk_texts = upsert_exam(data)
         all_questoes.extend(questoes)
         all_chunk_texts.extend(chunk_texts)
-        print(f"Loaded {json_file.relative_to(PROJECT_ROOT)} -> {prova.materia}")
+        logger.info(f"Loaded {json_file.relative_to(PROJECT_ROOT)} -> {prova.materia}")
 
-    print(f"Generating embeddings for {len(all_chunk_texts)} questions...", flush=True)
+    logger.info(f"Generating embeddings for {len(all_chunk_texts)} questions...")
     embeddings = get_embeddings_batch(embedding_client, all_chunk_texts)
     chunks = rebuild_vector_index(all_questoes, embeddings)
 

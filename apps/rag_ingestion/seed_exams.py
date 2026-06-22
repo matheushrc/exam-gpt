@@ -3,6 +3,8 @@ import argparse
 import sys
 from pathlib import Path
 
+from loguru import logger
+
 PROJECT_ROOT = Path(__file__).resolve().parents[2]
 sys.path.insert(0, str(PROJECT_ROOT))
 
@@ -23,7 +25,7 @@ def parse_args() -> argparse.Namespace:
 def main() -> None:
     args = parse_args()
     result = seed_exam_jsons(args.json_root)
-    print(
+    logger.info(
         f"Seeded {result.provas} exams, {result.questoes} questions, "
         f"{result.chunks} chunks. Index: {result.index_path}"
     )
