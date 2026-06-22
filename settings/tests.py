@@ -30,3 +30,17 @@ class LoggingConfigTests(SimpleTestCase):
             logger.remove(sink_id)
 
         self.assertEqual(len(records), 1)
+
+    def test_pymongo_debug_noise_is_suppressed(self):
+        configure_logging(debug=True)
+        records = []
+        sink_id = logger.add(records.append, format="{message}")
+        try:
+            logging.getLogger("pymongo").debug("Command started")
+            logging.getLogger("pymongo").warning("a real pymongo warning")
+        finally:
+            logger.remove(sink_id)
+
+        messages = [r.record["message"] for r in records]
+        self.assertNotIn("Command started", messages)
+        self.assertIn("a real pymongo warning", messages)
