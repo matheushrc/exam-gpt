@@ -117,7 +117,8 @@ look is **Manuscrito, light** (cream paper / maroon ink). Tokens live in
 ### Adding a screen
 
 Any new template extends `base.html`, which already wires `tokens.css`,
-`base.css`, `theme.js`, and the shared shell (`shell.js`). You only add your
+`base.css`, `theme.js`, and the shared shell scripts (`shell-core.js`,
+`sidebar-toggle.js`, `settings-modal.js`, `user-menu.js`). You only add your
 page-specific CSS in `{% block extra_css %}`. Never re-declare colors/fonts —
 consume the variables below.
 
@@ -228,15 +229,22 @@ Non-color tokens (variant-independent), from `tokens.css`:
 ```css.
 --sidebar-width: 270px;          --radius-sm: 7px;
 --sidebar-collapsed-width: 76px; --radius-md: 10px;
---transition-fast: 0.15s ease;   --radius-lg: 16px;
+--right-panel-width: 320px;      --radius-lg: 16px;
+--transition-fast: 0.15s ease;
 --transition-med: 0.22s ease;
 ```
 
 - **Radius:** `sm` for inputs/inner chips, `md` for buttons, larger bespoke radii
   (11–18px) for cards, dropzones, and dropdowns.
 - **Transitions:** animate `border-color`, `background`, `color`, `box-shadow`
-  with `--transition-fast`; never animate layout. Motion is functional (state
-  feedback), not ambient.
+  with `--transition-fast`. Don't animate layout width with CSS transitions —
+  the one exception is the sidebar/right-panel collapse, which uses a damped-
+  spring `width` animator (`springWidth` in `shell-core.js`) for a snappier
+  feel than a CSS ease. Content inside an animated-width container (labels,
+  headers, controls) must be pinned to a fixed width/position based on the
+  container's *static* expanded or collapsed size — never `inset: 0` or
+  `margin: auto` against the live animated box, or it reflows/drifts mid-fade
+  instead of just fading in place (see §11).
 - **Spacing:** ad-hoc rem/px per component; content columns cap at ~740px
   (`.upload-inner`) for readability.
 
@@ -245,7 +253,9 @@ Non-color tokens (variant-independent), from `tokens.css`:
 ## 6. Layout
 
 The app is a persistent **sidebar + main** shell, shared by every screen via
-partials in `templates/partials/` and `shell.js`.
+partials in `templates/partials/` and the shared shell scripts
+(`staticfiles/js/shell-core.js`, `sidebar-toggle.js`, `settings-modal.js`,
+`user-menu.js`).
 
 ```
 ┌────────────┬───────────────────────────────────────────┐
@@ -261,9 +271,11 @@ partials in `templates/partials/` and `shell.js`.
 └────────────┴───────────────────────────────────────────┘
 ```
 
-- The sidebar collapses to icon-only (76px); tooltips use native `title`
-  attributes (do **not** reintroduce CSS `::after` tooltips — they get clipped by
-  the sidebar's `overflow: hidden`).
+- The sidebar collapses to icon-only (76px); the chat screen's right-hand
+  settings panel collapses to 0 (320px expanded). Both use the same spring
+  width animator — see §5. Tooltips use native `title` attributes (do **not**
+  reintroduce CSS `::after` tooltips — they get clipped by the sidebar's
+  `overflow: hidden`).
 - Content scrolls in `.chat-scroll` (an **inner** scroll container), not the
   window — keep this in mind when scripting scroll/scroll-into-view.
 - **Mobile (`max-width: 640px`):** the sidebar drops to a bottom tab bar and the
@@ -275,9 +287,11 @@ partials in `templates/partials/` and `shell.js`.
 ## 7. Component patterns
 
 Shared primitives live in [`staticfiles/css/base.css`](staticfiles/css/base.css)
-and the chat shell in
-[`apps/chat/static/chat/css/chat.css`](apps/chat/static/chat/css/chat.css).
-Screen-specific components live beside their app (e.g.
+and the chat shell, split by concern under
+[`apps/chat/static/chat/css/`](apps/chat/static/chat/css/) (`sidebar.css`,
+`user-menu.css`, `settings-modal.css`, `chat-area.css`, `right-panel.css`,
+`layout.css`, `responsive.css`). Screen-specific components live beside their
+app (e.g.
 [`apps/upload/static/upload/css/upload-screen.css`](apps/upload/static/upload/css/upload-screen.css)).
 
 - **Buttons** — `.btn-primary` (accent fill, `--color-on-accent` text) and
@@ -333,17 +347,28 @@ Rendering uses [marked](https://marked.js.org) + [KaTeX](https://katex.org)
 
 ## 10. File map
 
-| Path                                              | Contains                                            |
-| ------------------------------------------------- | --------------------------------------------------- |
-| `design/README.md`                                | Why the original mockup was retired (pointer note)  |
-| `staticfiles/css/tokens.css`                      | All design tokens (variants × modes)                |
-| `staticfiles/css/base.css`                        | Resets, buttons, forms, chat-bubble defaults, utils |
-| `staticfiles/js/theme.js`                         | Variant/mode switching, persistence, system sync    |
-| `staticfiles/js/shell.js`                         | Shared app-shell behavior (`window.PGShell`)        |
-| `templates/base.html`                             | Document shell, fonts, token/script wiring, blocks  |
-| `templates/partials/_sidebar.html` etc.           | Shared shell markup (sidebar, user menu, settings)  |
-| `apps/chat/static/chat/css/chat.css`              | Chat shell + layout (sidebar, header, body, panels) |
-| `apps/upload/static/upload/css/upload-screen.css` | Upload/review screen components                     |
+| Path                                                  | Contains                                                       |
+| ------------------------------------------------------ | --------------------------------------------------------------- |
+| `design/README.md`                                    | Why the original mockup was retired (pointer note)             |
+| `staticfiles/css/tokens.css`                          | All design tokens (variants × modes)                            |
+| `staticfiles/css/base.css`                            | Resets, buttons, forms, chat-bubble defaults, utils             |
+| `staticfiles/js/theme.js`                             | Variant/mode switching, persistence, system sync                |
+| `staticfiles/js/shell-core.js`                        | Settings store, CSRF helper, `springWidth` (`window.PGShell`)   |
+| `staticfiles/js/sidebar-toggle.js`                    | Sidebar collapse/expand                                         |
+| `staticfiles/js/settings-modal.js`                    | Model-settings modal                                            |
+| `staticfiles/js/user-menu.js`                         | Sidebar-footer appearance menu                                  |
+| `templates/base.html`                                 | Document shell, fonts, token/script wiring, blocks              |
+| `templates/partials/_sidebar.html` etc.               | Shared shell markup (sidebar, user menu, settings)              |
+| `apps/chat/static/chat/css/sidebar.css`               | Sidebar shell + collapse                                        |
+| `apps/chat/static/chat/css/right-panel.css`           | Chat right-hand settings panel + collapse                       |
+| `apps/chat/static/chat/css/chat-area.css`             | Chat header/body/bubbles/markdown/sources                       |
+| `apps/chat/static/chat/css/user-menu.css`             | Sidebar-footer appearance menu                                  |
+| `apps/chat/static/chat/css/settings-modal.css`        | Model-settings modal                                            |
+| `apps/chat/static/chat/css/layout.css`                | `.chat-layout` flex shell                                       |
+| `apps/chat/static/chat/css/responsive.css`            | ≤640px mobile overrides                                         |
+| `apps/chat/static/chat/js/right-panel.js`             | Right-panel settings + collapse                                 |
+| `apps/chat/static/chat/js/transcript.js`              | Chat transcript render + streaming send                         |
+| `apps/upload/static/upload/css/upload-screen.css`     | Upload/review screen components                                 |
 
 > Note: `staticfiles/` holds the **source** static assets served by Django's
 > staticfiles finders in `DEBUG`. `static_collected/` is `collectstatic` output
@@ -376,6 +401,13 @@ Concrete failure modes from real generations and prior bugs. Each is a hard rule
   pattern (marked + KaTeX) so math renders consistently.
 - **Don't introduce a new accent or status color.** Derive translucent states
   with `color-mix(...)` from existing tokens.
+- **Don't size or center content inside an animated-width container with
+  `inset: 0` / `margin: auto`.** It recalculates against the container's live
+  width every frame, so the content reflows (text wraps) or drifts sideways
+  mid-fade instead of just fading in place (the sidebar brand text, the
+  collapsed-logo button, and the right-panel settings all hit this). Pin a
+  fixed width/position derived from the container's static expanded or
+  collapsed size instead.
 
 ---
 
