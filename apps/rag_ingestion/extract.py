@@ -13,7 +13,11 @@ from pydantic_ai.agent import Agent
 
 from apps.rag_ingestion.agents.Google import GoogleAgent
 from apps.rag_ingestion.pdf_convert import InferenceType
-from apps.rag_ingestion.prompts import EXAM_PROMPT, NAMING_PATTERN_PROMPT
+from apps.rag_ingestion.prompts import (
+    EXAM_PROMPT,
+    EXTRACTION_USER_PROMPT,
+    FILE_NAME_PROMPT,
+)
 from apps.rag_ingestion.schemas.prova import Prova
 from apps.rag_ingestion.settings import embeddings_settings
 
@@ -43,22 +47,8 @@ class ProvaComNome(Prova):
     )
 
 
-FILE_NAME_PROMPT = """
-## Saída de nome de arquivo
-- Preencha `arquivo.disciplina` e `arquivo.nome_arquivo` usando a convenção de nomes acima.
-- A extensão do arquivo gerado deve ser `.json`.
-- Use o usuário institucional do professor quando aparecer no documento; caso contrário,
-  derive um identificador curto e estável do nome do professor, em minúsculas, sem acentos.
-- Se a prova for recuperação, inclua `_rec`; se for parte específica, inclua `_p<n>`.
-- Retorne somente dados extraídos ou inferidos a partir da prova.
-"""
-
-
 def _build_system_prompt() -> str:
-    return (
-        f"{EXAM_PROMPT.strip()}\n\n{NAMING_PATTERN_PROMPT.strip()}\n\n"
-        f"{FILE_NAME_PROMPT.strip()}"
-    )
+    return f"{EXAM_PROMPT.strip()}\n\n{FILE_NAME_PROMPT.strip()}"
 
 
 def _make_agent(google_client: GoogleAgent, model_name: str) -> Agent:
@@ -101,7 +91,7 @@ async def extract_exam_from_content(
     client = GoogleAgent(api_key=key)
     agent = _make_agent(client, model_name)
 
-    base_prompt = f"Extraia a prova completa do material anexo. Origem: {source_hint}"
+    base_prompt = EXTRACTION_USER_PROMPT.format(source_hint=source_hint)
     if inference_type == "TEXT":
         user_prompt = f"{base_prompt}\n\n## Conteúdo extraído do PDF\n\n{content}"
         result = await client.get_inference_async(agent=agent, user_prompt=user_prompt)
