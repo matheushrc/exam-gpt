@@ -59,7 +59,7 @@ UI is built from, and the conventions to follow when adding new screens.
 as a static mockup (`design/Exam GPT.dc.html`), which has since been
 **retired** — the implementation diverged from it, so it was removed to stop it
 misleading new work (see [`design/README.md`](design/README.md)). The front
-matter and prose here are the contract; `staticfiles/css/tokens.css` is the
+matter and prose here are the contract; `static/css/tokens.css` is the
 implementation of record.
 
 This file follows the [DESIGN.md convention](https://github.com/google-labs-code/design.md)
@@ -102,7 +102,7 @@ Themes are pure CSS custom properties scoped by two attributes on `<html>`:
 - **`data-theme`** → `light` | `dark` (resolved value; `system` is resolved to one
   of these at runtime)
 
-Switching is handled by [`staticfiles/js/theme.js`](staticfiles/js/theme.js),
+Switching is handled by [`static/js/theme.js`](static/js/theme.js),
 loaded **synchronously in `<head>`** (before paint, to avoid a flash):
 
 | Concern | localStorage key  | Values                             | Default      |
@@ -112,7 +112,7 @@ loaded **synchronously in `<head>`** (before paint, to avoid a flash):
 
 `system` mode follows `prefers-color-scheme` live via `matchMedia`. The default
 look is **Manuscrito, light** (cream paper / maroon ink). Tokens live in
-[`staticfiles/css/tokens.css`](staticfiles/css/tokens.css).
+[`static/css/tokens.css`](static/css/tokens.css).
 
 ### Adding a screen
 
@@ -254,7 +254,7 @@ Non-color tokens (variant-independent), from `tokens.css`:
 
 The app is a persistent **sidebar + main** shell, shared by every screen via
 partials in `templates/partials/` and the shared shell scripts
-(`staticfiles/js/shell-core.js`, `sidebar-toggle.js`, `settings-modal.js`,
+(`static/js/shell-core.js`, `sidebar-toggle.js`, `settings-modal.js`,
 `user-menu.js`).
 
 ```
@@ -286,7 +286,7 @@ partials in `templates/partials/` and the shared shell scripts
 
 ## 7. Component patterns
 
-Shared primitives live in [`staticfiles/css/base.css`](staticfiles/css/base.css)
+Shared primitives live in [`static/css/base.css`](static/css/base.css)
 and the chat shell, split by concern under
 [`apps/chat/static/chat/css/`](apps/chat/static/chat/css/) (`sidebar.css`,
 `user-menu.css`, `settings-modal.css`, `chat-area.css`, `right-panel.css`,
@@ -352,13 +352,13 @@ Rendering uses [marked](https://marked.js.org) + [KaTeX](https://katex.org)
 | Path                                                  | Contains                                                       |
 | ------------------------------------------------------ | --------------------------------------------------------------- |
 | `design/README.md`                                    | Why the original mockup was retired (pointer note)             |
-| `staticfiles/css/tokens.css`                          | All design tokens (variants × modes)                            |
-| `staticfiles/css/base.css`                            | Resets, buttons, forms, chat-bubble defaults, utils             |
-| `staticfiles/js/theme.js`                             | Variant/mode switching, persistence, system sync                |
-| `staticfiles/js/shell-core.js`                        | Settings store, CSRF helper, `springWidth` (`window.PGShell`)   |
-| `staticfiles/js/sidebar-toggle.js`                    | Sidebar collapse/expand                                         |
-| `staticfiles/js/settings-modal.js`                    | Model-settings modal                                            |
-| `staticfiles/js/user-menu.js`                         | Sidebar-footer appearance menu                                  |
+| `static/css/tokens.css`                          | All design tokens (variants × modes)                            |
+| `static/css/base.css`                            | Resets, buttons, forms, chat-bubble defaults, utils             |
+| `static/js/theme.js`                             | Variant/mode switching, persistence, system sync                |
+| `static/js/shell-core.js`                        | Settings store, CSRF helper, `springWidth` (`window.PGShell`)   |
+| `static/js/sidebar-toggle.js`                    | Sidebar collapse/expand                                         |
+| `static/js/settings-modal.js`                    | Model-settings modal                                            |
+| `static/js/user-menu.js`                         | Sidebar-footer appearance menu                                  |
 | `templates/base.html`                                 | Document shell, fonts, token/script wiring, blocks              |
 | `templates/partials/_sidebar.html` etc.               | Shared shell markup (sidebar, user menu, settings)              |
 | `apps/chat/static/chat/css/sidebar.css`               | Sidebar shell + collapse                                        |
@@ -378,8 +378,8 @@ Rendering uses [marked](https://marked.js.org) + [KaTeX](https://katex.org)
 | `apps/upload/static/upload/css/responsive.css`        | ≤640px mobile overrides (upload screen)                         |
 | `apps/upload/static/upload/css/upload.css`            | No-JS fallback wizard (`step1_upload.html`/`step2_meta.html`/`step3_review.html`), used when the client-side JSON flow can't run |
 
-> Note: `staticfiles/` holds the **source** static assets served by Django's
-> staticfiles finders in `DEBUG`. `static_collected/` is `collectstatic` output
+> Note: `static/` holds the **source** static assets served by Django's
+> staticfiles finders in `DEBUG`. `staticfiles/` is `collectstatic` output
 > (production, WhiteNoise) — never edit it by hand.
 
 ---
@@ -395,8 +395,8 @@ Concrete failure modes from real generations and prior bugs. Each is a hard rule
 - **Don't add CSS `::after` / `::before` tooltips.** They get clipped by the
   sidebar's `overflow: hidden` (this caused a real artifact bug). Use the native
   `title` attribute.
-- **Don't edit anything in `static_collected/`.** It's `collectstatic` output;
-  edit the source under `staticfiles/` or the app's `static/` dir.
+- **Don't edit anything in `staticfiles/`.** It's `collectstatic` output;
+  edit the source under `static/` or the app's `static/` dir.
 - **Don't assume the window scrolls.** Page content scrolls inside
   `.chat-scroll`; script that container, not `window`.
 - **Don't re-declare `@font-face` or re-import fonts.** They load once in
@@ -424,7 +424,7 @@ Concrete failure modes from real generations and prior bugs. Each is a hard rule
 - Treat this file like a **release note**: when tokens, components, or patterns
   change, update DESIGN.md in the same commit. A stale design doc is worse than
   none — that's exactly what got the original mockup retired.
-- The front-matter tokens must stay in sync with `staticfiles/css/tokens.css`
+- The front-matter tokens must stay in sync with `static/css/tokens.css`
   (front matter = Manuscrito light); §3's tables cover the other variants/modes.
 - Optional: validate the token block with the reference linter —
   `npx @google/design.md lint DESIGN.md` (flags broken token refs + WCAG

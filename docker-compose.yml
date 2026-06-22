@@ -46,8 +46,8 @@ services:
           path: ./templates
           target: /app/templates
         - action: sync+restart
-          path: ./staticfiles
-          target: /app/staticfiles
+          path: ./static
+          target: /app/static
         - action: sync+restart
           path: ./settings
           target: /app/settings
