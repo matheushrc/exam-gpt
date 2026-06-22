@@ -1,57 +1,105 @@
-# from django.shortcuts import render
-import json
-import os
-from pathlib import Path
+import asyncio
+import base64
+import logging
 
-from dotenv import load_dotenv
-from pydantic_ai.agent import Agent
+from rest_framework.response import Response
+from rest_framework.views import APIView
 
-from apps.rag_ingestion.agents.Google import GoogleAgent
-from apps.rag_ingestion.prompts import EXAM_PROMPT
-from apps.rag_ingestion.schemas import Prova
-from apps.rag_ingestion.utils import load_images_from_folder
+from apps.rag_ingestion.embed import (
+    get_client,
+    get_embeddings_batch,
+    rebuild_vector_index,
+    upsert_exam,
+)
+from apps.rag_ingestion.extract import extract_exam_from_images, extract_exam_from_pdf
 
-load_dotenv()
-
-
-async def get_exam_data(google_client: GoogleAgent, images: list[bytes]):
-    # Create your views here.
-
-    agent: Agent[None, str] = google_client.create_agent(
-        model_name="gemini-3.5-flash",
-        retries=10,
-        output_type=Prova,
-        model_settings={
-            "max_tokens": 64000,
-            "temperature": 0.0,
-        },
-        system_prompt=EXAM_PROMPT,
-    )
-
-    result = await google_client.get_inference_async(
-        agent=agent,
-        image_content=images,
-    )
-
-    return result
+logger = logging.getLogger(__name__)
 
 
-if __name__ == "__main__":
-    import argparse
-    import asyncio
+class ProvaExtractAPIView(APIView):
+    """POST /api/provas/extract/ -- JSON counterpart of UploadView for SPA clients.
 
-    parser = argparse.ArgumentParser(
-        description="Extract one exam image folder to JSON."
-    )
-    parser.add_argument("image_folder", type=Path)
-    parser.add_argument("output_json", type=Path)
-    args = parser.parse_args()
+    Accepts the same inputs (multipart files or base64 camera images) and
+    returns the extracted Prova+Questões as JSON instead of redirecting into
+    the session-based wizard.
+    """
 
-    GOOGLE_API_KEY = os.environ.get("GOOGLE_API_KEY", "")
-    google_client = GoogleAgent(api_key=GOOGLE_API_KEY)
+    def post(self, request):
+        try:
+            files = request.FILES.getlist("files")
+            if files:
+                if len(files) == 1 and files[0].name.lower().endswith(".pdf"):
+                    pdf_file = files[0]
+                    exam = asyncio.run(
+                        extract_exam_from_pdf(
+                            pdf_file.read(), source_hint=pdf_file.name
+                        )
+                    )
+                    file_names = [pdf_file.name]
+                else:
+                    images = [f.read() for f in files]
+                    file_names = [f.name for f in files]
+                    exam = asyncio.run(
+                        extract_exam_from_images(
+                            images, source_hint=", ".join(file_names)
+                        )
+                    )
+            elif request.content_type == "application/json":
+                camera_images = request.data.get("camera_images") or []
+                if not camera_images:
+                    raise ValueError("No files or camera images provided.")
+                images = [base64.b64decode(img) for img in camera_images]
+                file_names = [f"camera_{i + 1}.jpg" for i in range(len(images))]
+                exam = asyncio.run(
+                    extract_exam_from_images(images, source_hint="camera capture")
+                )
+            else:
+                raise ValueError("No files or camera images provided.")
+        except (ValueError, RuntimeError) as exc:
+            logger.warning("Exam extraction failed: %s", exc)
+            return Response({"detail": str(exc)}, status=400)
+        except Exception as exc:  # noqa: BLE001
+            logger.exception("Unexpected error during exam extraction")
+            return Response(
+                {"detail": f"Erro inesperado ao extrair a prova: {exc}"}, status=500
+            )
 
-    images = load_images_from_folder(str(args.image_folder))
-    prova_data = asyncio.run(get_exam_data(google_client, images))
-    args.output_json.parent.mkdir(parents=True, exist_ok=True)
-    with args.output_json.open("w", encoding="utf-8") as f:
-        json.dump(prova_data.output.model_dump(), f, indent=4, ensure_ascii=False)
+        return Response(
+            {"prova": exam.model_dump(mode="json"), "file_names": file_names}
+        )
+
+
+class ProvaSaveAPIView(APIView):
+    """POST /api/provas/ -- persist a (possibly user-edited) Prova+Questões payload
+    and rebuild the vector index, mirroring ReviewView.post() for SPA clients.
+    """
+
+    def post(self, request):
+        prova = request.data.get("prova")
+        if not prova:
+            return Response({"detail": "O campo 'prova' é obrigatório."}, status=400)
+
+        try:
+            prova_obj, questao_objs, chunk_texts = upsert_exam(prova)
+        except Exception as exc:  # noqa: BLE001
+            logger.exception("Failed to persist exam")
+            return Response({"detail": f"Erro ao salvar a prova: {exc}"}, status=400)
+
+        warning = None
+        try:
+            client = get_client()
+            embeddings = get_embeddings_batch(client, chunk_texts)
+            rebuild_vector_index(questao_objs, embeddings)
+        except Exception as exc:  # noqa: BLE001
+            logger.exception("Embedding/indexing step failed after saving exam")
+            warning = str(exc)
+
+        return Response(
+            {
+                "id": str(prova_obj.id),
+                "materia": prova_obj.materia,
+                "ano_semestre": prova_obj.ano_semestre,
+                "numero_avaliacao": prova_obj.numero_avaliacao,
+                "warning": warning,
+            }
+        )

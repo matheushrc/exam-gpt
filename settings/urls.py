@@ -20,8 +20,6 @@ from django.contrib import admin
 from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
-from apps.upload.views import ProvaExtractAPIView, ProvaSaveAPIView
-
 urlpatterns = [
     path("__reload__/", include("django_browser_reload.urls")),
     # path("", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
@@ -34,9 +32,6 @@ urlpatterns = [
     ),
     path("", include("apps.chat.urls")),
     path("api/", include("apps.rag_search.urls")),
-    path(
-        "api/provas/extract/", ProvaExtractAPIView.as_view(), name="api-provas-extract"
-    ),
-    path("api/provas/", ProvaSaveAPIView.as_view(), name="api-provas-save"),
+    path("api/", include("apps.rag_ingestion.urls")),
     path("upload/", include("apps.upload.urls")),
 ]
