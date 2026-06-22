@@ -57,4 +57,9 @@ def configure_logging(debug: bool) -> None:
         ),
     )
 
+    # Fixed at WARNING regardless of `debug` -- third-party libraries (pymongo,
+    # watchfiles, ...) log noisy DEBUG/INFO driver chatter unconditionally, and
+    # nobody asked to see that just because Django's DEBUG is on. The app's own
+    # code logs via `from loguru import logger` directly, bypassing this bridge
+    # entirely, so it's unaffected and still governed by `level` above.
     logging.basicConfig(handlers=[InterceptHandler()], level=logging.WARNING, force=True)

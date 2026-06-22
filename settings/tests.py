@@ -32,6 +32,10 @@ class LoggingConfigTests(SimpleTestCase):
         self.assertEqual(len(records), 1)
 
     def test_pymongo_debug_noise_is_suppressed(self):
+        # Concrete regression guard for the originally-reported noisy library
+        # (found flooding `docker compose logs`); superseded as a general
+        # mechanism by test_third_party_debug_noise_is_suppressed_regardless_of_debug_flag
+        # below, but kept since it pins the real-world case that triggered the fix.
         configure_logging(debug=True)
         records = []
         sink_id = logger.add(records.append, format="{message}")
