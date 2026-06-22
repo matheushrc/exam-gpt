@@ -179,6 +179,10 @@ class UploadViewTests(TestCase):
         messages = [r.record["message"] for r in records]
         self.assertIn("Exam extraction failed: boom", messages)
 
+        from apps.upload import views as upload_views
+
+        self.assertIs(upload_views.logger, logger)
+
     @staticmethod
     def _make_upload_file(name: str, content: bytes):
         from django.core.files.uploadedfile import SimpleUploadedFile

@@ -263,3 +263,7 @@ class ProvaExtractAPIViewLoggingTests(TestCase):
         self.assertEqual(response.status_code, 400)
         messages = [r.record["message"] for r in records]
         self.assertIn("Exam extraction failed: boom", messages)
+
+        from apps.rag_ingestion import views as rag_views
+
+        self.assertIs(rag_views.logger, logger)
