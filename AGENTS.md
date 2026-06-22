@@ -60,6 +60,12 @@ schemas clearly by domain. Prefer typed functions where practical; this project
 includes Django mypy/stub configuration. Format templates with DJLint using
 4-space indentation. Use Ruff for Python linting before committing.
 
+Never run `ruff format`/`ruff check` against migration folders (`*/migrations/*`,
+`mongo_migrations/*`) — `pyproject.toml` excludes them via `[tool.ruff]
+extend-exclude`, but double-check before running Ruff with a custom path or
+config override. Django/Mongo migration files must stay byte-stable except for
+legitimate migration-generation diffs.
+
 ## Testing Guidelines
 
 Tests currently follow Django's app-local pattern, for example
