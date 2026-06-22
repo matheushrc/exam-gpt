@@ -5,28 +5,29 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.14.3"
 dependencies = [
-    "beautifulsoup4>=4.14.3",
-    "django>=6.0.3",
+    "beautifulsoup4>=4.15.0",
     "django-browser-reload>=1.21.0",
     "django-htmx>=1.27.0",
     "django-mongodb-backend>=6.0.3",
     "django-watchfiles>=1.4.0",
+    "django>=6.0.6",
     "djangorestframework>=3.17.1",
-    "djlint>=1.36.4",
+    "djlint>=1.39.2",
     "drf-spectacular>=0.29.0",
     "loguru>=0.7.3",
-    "numpy>=2.4.6",
+    "numpy>=2.5.0",
     "pillow>=12.2.0",
-    "pydantic>=2.13.3",
-    "pydantic-ai-slim[google,openai]>=1.89.0",
-    "pydantic-settings>=2.14.1",
+    "pydantic-ai-slim[google,openai]>=1.107.0",
+    "pydantic-settings>=2.14.2",
+    "pydantic>=2.13.4",
     "pymupdf>=1.27.2.3",
+    "python-dotenv>=1.2.2",
     "refinedoc>=1.0.1",
-    "requests>=2.33.1",
-    "ruff>=0.15.12",
+    "requests>=2.34.2",
+    "ruff>=0.15.18",
     "sqlite-vec>=0.1.9",
-    "turbovec>=0.7.0",
-    "ty>=0.0.33",
+    "turbovec>=0.8.0",
+    "ty>=0.0.51",
     "whitenoise>=6.12.0",
 ]
 
@@ -51,8 +52,4 @@ line_break_after_tag = "div,section"
 indent = 4
 
 [dependency-groups]
-dev = [
-    "django-stubs>=6.0.3",
-    "ipykernel>=7.2.0",
-    "python-dotenv>=1.2.2",
-]
+dev = ["django-stubs>=6.0.5"]
