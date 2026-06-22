@@ -75,6 +75,14 @@ app code they exercise, name test methods descriptively, and cover model,
 schema, ingestion, and view behavior when changing those areas. Run
 `uv run python manage.py test` before opening a pull request.
 
+Verify every change against the running app (Docker Compose), not just unit
+tests. Be economical only around exam seeding/extraction (`extract_exams`,
+`seed_exam_jsons`) since those burn real Google API quota — reuse already
+converted/seeded exams instead of re-running extraction or seeding when not
+needed for the change. Chatting through the chat endpoint/UI has no such
+cost: always exercise it for real against a running server instead of writing
+mocked-response tests for chat behavior.
+
 ## Commit & Pull Request Guidelines
 
 Recent history uses concise, imperative commit messages, sometimes with a
@@ -104,3 +112,8 @@ After implementing code changes, run the relevant tests and checks before
 reporting the work as complete. For API or Docker-dependent changes, verify the
 behavior through Docker Compose and an actual request such as `curl` when
 practical.
+
+When a concern in `CONCERNS.md` gets resolved, delete that entry instead of
+marking it "RESOLVED" or leaving a note about the fix — the git history
+already has that. Keeping resolved entries around just makes the file grow
+unboundedly, which costs tokens every time it's read.
