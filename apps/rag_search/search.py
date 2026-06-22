@@ -6,7 +6,7 @@ import numpy as np
 from google import genai
 from turbovec import IdMapIndex
 
-from apps.rag_ingestion.models import Chunks, Questao
+from apps.rag_ingestion.models import Chunks, Prova, Questao
 from apps.rag_search.settings import search_settings
 
 
@@ -94,6 +94,17 @@ def search(
             turbo_id__in=target_turbo_ids,
         )
     }
+
+    questao_ids = [chunk.id_questao_id for chunk in chunks.values()]
+    prova_by_questao_id = {
+        link.questao_id: link.prova
+        for link in Prova.questoes.through.objects.filter(
+            questao_id__in=questao_ids
+        ).select_related("prova")
+    }
+    for chunk in chunks.values():
+        chunk.id_questao.prova = prova_by_questao_id.get(chunk.id_questao_id)
+
     return [
         (id_scores[turbo_id], chunks[turbo_id].id_questao)
         for turbo_id in target_turbo_ids

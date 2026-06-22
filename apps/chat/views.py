@@ -71,7 +71,7 @@ def _format_context(results):
 
     blocks = []
     for score, questao in results:
-        prova = questao.provas.first()
+        prova = questao.prova
         if prova:
             header = (
                 f"[{prova.materia} Q{questao.numero}] "
