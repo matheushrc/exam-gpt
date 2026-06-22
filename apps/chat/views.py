@@ -217,7 +217,7 @@ class ChatMessageView(APIView):
             {
                 "score": score,
                 "questao": {
-                    "id": questao.id,
+                    "id": str(questao.id),
                     "numero": questao.numero,
                     "enunciado": questao.enunciado,
                     "subquestoes": questao.subquestoes,

@@ -18,14 +18,24 @@ def get_client() -> genai.Client:
     return genai.Client(api_key=google_api_key)
 
 
-@lru_cache(maxsize=1)
-def load_index() -> IdMapIndex | None:
-    index_path = Path(search_settings.INDEX_PATH)
+_index_cache: tuple[float, IdMapIndex] | None = None
 
+
+def load_index() -> IdMapIndex | None:
+    global _index_cache
+
+    index_path = Path(search_settings.INDEX_PATH)
     if not index_path.exists():
+        _index_cache = None
         return None
 
-    return IdMapIndex.load(str(index_path))
+    mtime = index_path.stat().st_mtime
+    if _index_cache is not None and _index_cache[0] == mtime:
+        return _index_cache[1]
+
+    index = IdMapIndex.load(str(index_path))
+    _index_cache = (mtime, index)
+    return index
 
 
 def get_query_embedding(query: str) -> list[float]:
