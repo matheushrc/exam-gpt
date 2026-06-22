@@ -1,3 +1,5 @@
+/* Chat transcript: message rendering, the streaming send/receive loop, and
+   the textarea auto-resize. Depends on window.PGShell (shell-core.js). */
 (function () {
   "use strict";
 
@@ -8,90 +10,8 @@
   // reload by design — there's no server-side conversation storage.
   var conversationHistory = null;
 
-  // Sidebar collapse, the appearance menu, and the model-settings modal live in
-  // shell.js (shared with the upload screen). chat.js only owns the right-hand
-  // conversation panel and the transcript.
   var loadSettings = window.PGShell.loadSettings;
-  var saveSetting = window.PGShell.saveSetting;
   var getCsrfToken = window.PGShell.getCsrfToken;
-
-  /* ---------------- conversation settings (right panel) ---------------- */
-
-  function setupRightPanel() {
-    var panel = document.getElementById("right-panel");
-    var toggle = document.getElementById("right-panel-toggle");
-    var closeBtn = document.getElementById("right-panel-close");
-    var groundingBtn = document.getElementById("setting-grounding");
-    var groundStatusText = document.getElementById("ground-status-text");
-    var ragGroup = document.getElementById("rag-group");
-    var topKInput = document.getElementById("setting-top-k");
-    var topKValue = document.getElementById("top-k-value");
-    var similarityInput = document.getElementById("setting-similarity");
-    var similarityValue = document.getElementById("similarity-value");
-    var temperatureInput = document.getElementById("setting-temperature");
-    var temperatureValue = document.getElementById("temperature-value");
-    var maxTokensInput = document.getElementById("setting-max-tokens");
-
-    var settings = loadSettings();
-
-    function renderGrounding() {
-      groundingBtn.classList.toggle("checked", settings.grounding);
-      groundingBtn.setAttribute("aria-checked", String(settings.grounding));
-      groundStatusText.textContent = settings.grounding
-        ? "A IA decide quando recuperar"
-        : "Sem recuperação — só o modelo";
-      ragGroup.classList.toggle("disabled", !settings.grounding);
-    }
-
-    topKInput.value = settings.topK;
-    topKValue.textContent = settings.topK;
-    similarityInput.value = settings.similarity;
-    similarityValue.textContent = settings.similarity.toFixed(2);
-    temperatureInput.value = settings.temperature;
-    temperatureValue.textContent = settings.temperature.toFixed(1);
-    maxTokensInput.value = settings.maxTokens;
-    renderGrounding();
-
-    if (toggle && panel) {
-      toggle.addEventListener("click", function () {
-        panel.classList.toggle("collapsed");
-        toggle.classList.toggle("active", !panel.classList.contains("collapsed"));
-      });
-    }
-    if (closeBtn && panel && toggle) {
-      closeBtn.addEventListener("click", function () {
-        panel.classList.add("collapsed");
-        toggle.classList.remove("active");
-      });
-    }
-
-    groundingBtn.addEventListener("click", function () {
-      settings.grounding = !settings.grounding;
-      saveSetting("grounding", settings.grounding);
-      renderGrounding();
-    });
-    topKInput.addEventListener("input", function () {
-      settings.topK = Number(topKInput.value);
-      topKValue.textContent = settings.topK;
-      saveSetting("topK", settings.topK);
-    });
-    similarityInput.addEventListener("input", function () {
-      settings.similarity = Number(similarityInput.value);
-      similarityValue.textContent = settings.similarity.toFixed(2);
-      saveSetting("similarity", settings.similarity);
-    });
-    temperatureInput.addEventListener("input", function () {
-      settings.temperature = Number(temperatureInput.value);
-      temperatureValue.textContent = settings.temperature.toFixed(1);
-      saveSetting("temperature", settings.temperature);
-    });
-    maxTokensInput.addEventListener("input", function () {
-      settings.maxTokens = Number(maxTokensInput.value) || 8192;
-      saveSetting("maxTokens", settings.maxTokens);
-    });
-  }
-
-  /* ---------------- chat transcript ---------------- */
 
   function scrollToBottom() {
     var container = document.getElementById("chat-scroll");
@@ -145,7 +65,7 @@
     var bubble = document.createElement("div");
     bubble.className = "chat-bubble loading";
     bubble.innerHTML =
-      '<div class="assistant-avatar">PG</div>' +
+      '<div class="assistant-avatar">EG</div>' +
       '<span class="dot-pulse"><span></span><span></span><span></span></span>';
     container.appendChild(bubble);
     scrollToBottom();
@@ -236,7 +156,7 @@
     var header = document.createElement("div");
     header.className = "assistant-header";
     header.innerHTML =
-      '<div class="assistant-avatar">PG</div>' +
+      '<div class="assistant-avatar">EG</div>' +
       '<span class="assistant-label">Exam GPT responde</span>';
     bubble.appendChild(header);
 
@@ -412,10 +332,7 @@
     });
   }
 
-  document.addEventListener("DOMContentLoaded", function () {
-    setupAutoResize();
-    setupRightPanel();
-  });
+  document.addEventListener("DOMContentLoaded", setupAutoResize);
 
   window.sendMessage = sendMessage;
   window.sendSuggestion = sendSuggestion;

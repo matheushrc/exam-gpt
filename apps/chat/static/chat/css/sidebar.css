@@ -1,0 +1,309 @@
+/* Sidebar */
+.sidebar {
+  width: var(--sidebar-width);
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+  overflow: hidden;
+}
+
+.sidebar.collapsed {
+  width: var(--sidebar-collapsed-width);
+}
+
+.sidebar-top {
+  position: relative;
+  height: 64px;
+  flex: none;
+}
+
+.sidebar-header {
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  /* Fixed to the expanded width rather than `inset: 0` (which would track
+     the sidebar's animated width) -- otherwise the brand text reflows/wraps
+     mid-fade as the container narrows instead of just fading in place. */
+  width: var(--sidebar-width);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 12px 0 16px;
+  opacity: 1;
+  transition: opacity var(--transition-fast);
+}
+
+.sidebar.collapsed .sidebar-header {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-width: 0;
+}
+
+.brand-badge {
+  width: 34px;
+  height: 34px;
+  flex: none;
+  border-radius: 9px;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.brand-text {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.brand-title {
+  font-family: var(--font-serif);
+  font-size: 17px;
+  font-weight: 600;
+  color: var(--color-text);
+  line-height: 1.1;
+}
+
+.brand-sub {
+  font-size: 9.5px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  margin-top: 2px;
+}
+
+.icon-btn {
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  color: var(--color-text-muted);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  flex: none;
+  position: relative;
+}
+
+.icon-btn:hover {
+  background: var(--color-hover);
+  color: var(--color-text);
+}
+
+.sidebar-collapsed-logo {
+  position: absolute;
+  top: 11px;
+  /* Centered against the static collapsed width rather than `inset: 0` +
+     `margin: auto` -- the auto-margin version recalculates against the
+     sidebar's live animated width, so the button visibly drifts sideways
+     while it's mid-fade. */
+  left: calc((var(--sidebar-collapsed-width) - 42px) / 2);
+  width: 42px;
+  height: 42px;
+  border-radius: 11px;
+  background: var(--color-accent);
+  color: var(--color-on-accent);
+  border: 1px solid transparent;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: background 0.15s, color 0.15s, border-color 0.15s, opacity var(--transition-fast);
+}
+
+.sidebar.collapsed .sidebar-collapsed-logo {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.sidebar-collapsed-logo:hover {
+  background: var(--color-card);
+  color: var(--color-accent);
+  border-color: var(--color-border);
+}
+
+.collapsed-logo-icon {
+  display: none;
+}
+
+.sidebar-collapsed-logo:hover .collapsed-logo-text {
+  display: none;
+}
+
+.sidebar-collapsed-logo:hover .collapsed-logo-icon {
+  display: block;
+}
+
+.sidebar-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px 14px 0;
+}
+
+.sidebar-item {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  width: 100%;
+  height: 40px;
+  padding: 0 12px;
+  border-radius: 10px;
+  color: var(--color-text);
+  text-decoration: none;
+  font-size: 14px;
+  font-weight: 500;
+  white-space: nowrap;
+  position: relative;
+}
+
+.sidebar-item:hover {
+  background: var(--color-hover);
+}
+
+.sidebar-item.active {
+  background: var(--color-accent-light);
+  color: var(--color-accent);
+  font-weight: 600;
+}
+
+.sidebar-icon {
+  flex: none;
+}
+
+.sidebar-label {
+  opacity: 1;
+  max-width: 160px;
+  overflow: hidden;
+  transition: opacity var(--transition-fast);
+}
+
+.sidebar.collapsed .sidebar-item {
+  height: 44px;
+  padding: 0 15px;
+}
+
+.sidebar.collapsed .sidebar-label {
+  opacity: 0;
+  max-width: 0;
+}
+
+.sidebar-history {
+  flex: 1;
+  overflow-y: auto;
+  padding: 20px 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  min-height: 0;
+  opacity: 1;
+  transition: opacity var(--transition-fast);
+}
+
+.sidebar.collapsed .sidebar-history {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.history-label {
+  font-size: 10px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  padding: 0 10px 9px;
+}
+
+.history-item {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  align-items: flex-start;
+  text-align: left;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  border-radius: 9px;
+  cursor: pointer;
+  background: transparent;
+}
+
+.history-item:hover {
+  background: var(--color-hover);
+}
+
+.history-item.active {
+  background: var(--color-card);
+}
+
+.history-title {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.history-sub {
+  font-size: 10.5px;
+  color: var(--color-text-muted);
+}
+
+.sidebar-footer {
+  border-top: 1px solid var(--color-border);
+  padding: 12px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  flex: none;
+  cursor: pointer;
+  background: transparent;
+  border-left: none;
+  border-right: none;
+  border-bottom: none;
+  width: 100%;
+  text-align: left;
+  transition: padding var(--transition-fast);
+}
+
+.sidebar-footer:hover {
+  background: var(--color-hover);
+}
+
+.footer-icon {
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border-radius: 9px;
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-text-muted);
+}
+
+.sidebar-footer .sidebar-label {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--color-text);
+}

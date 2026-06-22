@@ -1,0 +1,225 @@
+/* Right panel */
+.right-panel {
+  width: var(--right-panel-width);
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-surface);
+  border-left: 1px solid var(--color-border);
+  min-height: 0;
+  overflow: hidden;
+  transition: border-color var(--transition-med);
+}
+
+.right-panel.collapsed {
+  width: 0;
+  border-left-color: transparent;
+}
+
+.right-panel-header {
+  height: 64px;
+  /* Fixed to the expanded width and never allowed to shrink -- otherwise
+     this reflows (text wraps, controls compress) as `.right-panel`'s width
+     animates, instead of just fading in place. */
+  width: var(--right-panel-width);
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 18px;
+  border-bottom: 1px solid var(--color-border);
+  font-family: var(--font-serif);
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text);
+  opacity: 1;
+  transition: opacity var(--transition-fast);
+}
+
+.right-panel-body {
+  width: var(--right-panel-width);
+  flex: 1;
+  flex-shrink: 0;
+  overflow-y: auto;
+  min-height: 0;
+  padding: 20px 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  opacity: 1;
+  transition: opacity var(--transition-fast);
+}
+
+.right-panel.collapsed .right-panel-header,
+.right-panel.collapsed .right-panel-body {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.settings-group {
+  display: flex;
+  flex-direction: column;
+  gap: 13px;
+}
+
+.settings-group.bordered-top {
+  gap: 20px;
+  border-top: 1px solid var(--color-border);
+  padding-top: 22px;
+}
+
+.group-label {
+  font-size: 10.5px;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.toggle-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-card);
+  padding: 14px;
+}
+
+.toggle-row-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.toggle-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.toggle-desc {
+  font-size: 11.5px;
+  color: var(--color-text-muted);
+  line-height: 1.45;
+}
+
+.toggle-switch {
+  width: 46px;
+  height: 26px;
+  flex: none;
+  border: none;
+  border-radius: 13px;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.2s;
+  margin-top: 2px;
+  background: var(--color-border);
+}
+
+.toggle-switch.checked {
+  background: var(--color-accent);
+}
+
+.toggle-knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  transition: transform 0.2s;
+}
+
+.toggle-switch.checked .toggle-knob {
+  transform: translateX(20px);
+}
+
+.ground-status {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11.5px;
+  color: var(--color-text-muted);
+}
+
+.status-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--color-accent);
+  flex: none;
+}
+
+.rag-group {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  transition: opacity 0.2s;
+  padding-top: 6px;
+}
+
+.rag-group.disabled {
+  opacity: 0.45;
+}
+
+.slider-field,
+.number-field {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.slider-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.slider-value {
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--color-accent);
+  font-weight: 700;
+}
+
+.slider-field input[type="range"] {
+  width: 100%;
+  accent-color: var(--color-accent);
+  cursor: pointer;
+}
+
+.slider-hint {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  line-height: 1.4;
+}
+
+.number-field span:first-child {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.number-field input[type="number"] {
+  height: 44px;
+  border: 1px solid var(--color-border);
+  border-radius: 10px;
+  background: var(--color-card);
+  color: var(--color-text);
+  font-family: var(--font-mono);
+  font-size: 14px;
+  padding: 0 14px;
+  outline: none;
+  width: 100%;
+}
+
+.number-field input:focus {
+  border-color: var(--color-accent);
+}

@@ -7,7 +7,13 @@
     chat-layout
 {% endblock body_class %}
 {% block extra_css %}
-    <link rel="stylesheet" href="{% static 'chat/css/chat.css' %}">
+    <link rel="stylesheet" href="{% static 'chat/css/layout.css' %}">
+    <link rel="stylesheet" href="{% static 'chat/css/sidebar.css' %}">
+    <link rel="stylesheet" href="{% static 'chat/css/user-menu.css' %}">
+    <link rel="stylesheet" href="{% static 'chat/css/settings-modal.css' %}">
+    <link rel="stylesheet" href="{% static 'chat/css/chat-area.css' %}">
+    <link rel="stylesheet" href="{% static 'chat/css/right-panel.css' %}">
+    <link rel="stylesheet" href="{% static 'chat/css/responsive.css' %}">
 {% endblock extra_css %}
 {% block content %}
     {% include "partials/_sidebar.html" with active_view="chat" %}
@@ -185,5 +191,6 @@
     </main>
 {% endblock content %}
 {% block extra_js %}
-    <script src="{% static 'chat/js/chat.js' %}" defer></script>
+    <script src="{% static 'chat/js/right-panel.js' %}" defer></script>
+    <script src="{% static 'chat/js/transcript.js' %}" defer></script>
 {% endblock extra_js %}
