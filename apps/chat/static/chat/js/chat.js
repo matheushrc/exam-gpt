@@ -217,6 +217,13 @@
   }
 
   function appendAssistantBubble(answer, sources) {
+    var bubble = startAssistantBubble();
+    renderMarkdownInto(bubble._content, answer);
+    finishAssistantBubble(bubble, sources);
+    return bubble;
+  }
+
+  function startAssistantBubble() {
     var container = document.getElementById("chat-messages");
     var bubble = document.createElement("div");
     bubble.className = "chat-bubble assistant";
@@ -230,9 +237,15 @@
 
     var content = document.createElement("div");
     content.className = "md-content";
-    renderMarkdownInto(content, answer);
     bubble.appendChild(content);
+    bubble._content = content;
 
+    container.appendChild(bubble);
+    scrollToBottom();
+    return bubble;
+  }
+
+  function finishAssistantBubble(bubble, sources) {
     if (sources && sources.length) {
       var sourcesSection = document.createElement("details");
       sourcesSection.className = "sources-section";
@@ -249,10 +262,7 @@
 
       bubble.appendChild(sourcesSection);
     }
-
-    container.appendChild(bubble);
     scrollToBottom();
-    return bubble;
   }
 
   function sendText(text) {
@@ -290,7 +300,18 @@
       max_tokens: settings.maxTokens,
     };
 
-    fetch("/api/chat/", {
+    var bubble = null;
+    var answerText = "";
+
+    function ensureBubble() {
+      if (!bubble) {
+        loadingBubble.remove();
+        bubble = startAssistantBubble();
+      }
+      return bubble;
+    }
+
+    fetch("/api/chat/stream/", {
       method: "POST",
       headers: headers,
       body: JSON.stringify(payload),
@@ -308,11 +329,41 @@
               );
             });
         }
-        return response.json();
-      })
-      .then(function (data) {
-        loadingBubble.remove();
-        appendAssistantBubble(data.answer, data.sources);
+
+        var reader = response.body.getReader();
+        var decoder = new TextDecoder();
+        var buffer = "";
+
+        function pump() {
+          return reader.read().then(function (result) {
+            if (result.done) {
+              return;
+            }
+            buffer += decoder.decode(result.value, { stream: true });
+            var frames = buffer.split("\n\n");
+            buffer = frames.pop();
+
+            frames.forEach(function (frame) {
+              if (!frame.startsWith("data: ")) {
+                return;
+              }
+              var event = JSON.parse(frame.slice(6));
+              if (event.type === "delta") {
+                answerText += event.text;
+                renderMarkdownInto(ensureBubble()._content, answerText);
+                scrollToBottom();
+              } else if (event.type === "done") {
+                finishAssistantBubble(ensureBubble(), event.sources);
+              } else if (event.type === "error") {
+                throw new Error(event.detail);
+              }
+            });
+
+            return pump();
+          });
+        }
+
+        return pump();
       })
       .catch(function (err) {
         loadingBubble.remove();

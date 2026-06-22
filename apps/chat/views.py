@@ -1,6 +1,13 @@
 import asyncio
+import json
 import os
+import queue
+import threading
 
+from django.http import JsonResponse, StreamingHttpResponse
+from django.utils.decorators import method_decorator
+from django.views import View
+from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import TemplateView
 from drf_spectacular.utils import extend_schema
 from pydantic_ai import Tool
@@ -71,7 +78,8 @@ def _format_context(results):
 
     blocks = []
     for score, questao in results:
-        prova = questao.prova
+        provas = getattr(questao, "provas_resolved", [])
+        prova = provas[0] if provas else None
         if prova:
             header = (
                 f"[{prova.materia} Q{questao.numero}] "
@@ -148,6 +156,131 @@ async def _generate_answer(
     return result.output
 
 
+def _serialize_sources(collected: list) -> list[dict]:
+    return [
+        {
+            "score": score,
+            "questao": {
+                "id": str(questao.id),
+                "numero": questao.numero,
+                "enunciado": questao.enunciado,
+                "subquestoes": questao.subquestoes,
+                "resposta": questao.resposta,
+                "pontuacao": questao.pontuacao,
+                "nota_recebida": questao.nota_recebida,
+            },
+            "provas": [
+                {
+                    "materia": prova.materia,
+                    "professor": prova.professor,
+                    "ano_semestre": prova.ano_semestre,
+                    "numero_avaliacao": prova.numero_avaliacao,
+                }
+                for prova in getattr(questao, "provas_resolved", [])
+            ],
+        }
+        for score, questao in collected
+    ]
+
+
+def _parse_chat_request(data: dict) -> dict | None:
+    """Returns parsed/validated chat params, or None if the message is empty."""
+    message = (data.get("message") or "").strip()
+    if not message:
+        return None
+
+    return {
+        "message": message,
+        "materia": data.get("materia") or None,
+        "top_k": int(data.get("top_k") or chat_settings.DEFAULT_TOP_K),
+        "similarity_threshold": float(
+            data.get("similarity_threshold")
+            or chat_settings.DEFAULT_SIMILARITY_THRESHOLD
+        ),
+        "model_name": data.get("model") or chat_settings.DEFAULT_CHAT_MODEL,
+        "temperature": float(data.get("temperature") or chat_settings.DEFAULT_TEMPERATURE),
+        "max_tokens": int(data.get("max_tokens") or chat_settings.DEFAULT_MAX_TOKENS),
+        "grounding": bool(data.get("grounding", True)),
+    }
+
+
+def _resolve_api_key(request, data: dict) -> str | None:
+    return (
+        request.headers.get("X-Google-Api-Key")
+        or data.get("api_key")
+        or os.environ.get("GOOGLE_API_KEY")
+    )
+
+
+def _run_async_generator_sync(async_gen_factory):
+    """Drives an async generator to completion on a background thread,
+    yielding each item back to sync code via a queue.
+
+    StreamingHttpResponse under WSGI needs a sync iterable, but pydantic-ai's
+    streaming API (and the anyio task groups inside it) require the whole
+    `async with agent.run_stream(...)` block to run within a single task.
+    Calling `loop.run_until_complete()` per chunk from the WSGI thread breaks
+    that invariant ("cancel scope in a different task"), so instead we run
+    the entire async generator inside one `asyncio.run()` call on a separate
+    thread and relay items through a thread-safe queue.
+    """
+    q: queue.Queue = queue.Queue()
+
+    def runner():
+        async def consume():
+            try:
+                async for item in async_gen_factory():
+                    q.put(("item", item))
+            except Exception as exc:
+                q.put(("error", exc))
+            finally:
+                q.put(("done", None))
+
+        asyncio.run(consume())
+
+    thread = threading.Thread(target=runner, daemon=True)
+    thread.start()
+
+    while True:
+        kind, payload = q.get()
+        if kind == "item":
+            yield payload
+        elif kind == "error":
+            raise payload
+        else:
+            break
+
+    thread.join()
+
+
+def _stream_chat_events(
+    *,
+    message: str,
+    api_key: str,
+    model_name: str,
+    temperature: float,
+    max_tokens: int,
+    tools: list[Tool] | None,
+    collected: list,
+):
+    async def agen():
+        client = GoogleAgent(api_key=api_key)
+        agent = _make_chat_agent(client, model_name, temperature, max_tokens, tools)
+        async with client.run_stream(agent=agent, user_prompt=message) as result:
+            async for delta in result.stream_text(delta=True):
+                yield delta
+
+    try:
+        for delta in _run_async_generator_sync(agen):
+            yield f"data: {json.dumps({'type': 'delta', 'text': delta})}\n\n"
+    except Exception as exc:
+        yield f"data: {json.dumps({'type': 'error', 'detail': str(exc)})}\n\n"
+        return
+
+    sources = _serialize_sources(collected)
+    yield f"data: {json.dumps({'type': 'done', 'sources': sources})}\n\n"
+
+
 class ChatMessageView(APIView):
     @extend_schema(
         responses={
@@ -162,30 +295,11 @@ class ChatMessageView(APIView):
         }
     )
     def post(self, request):
-        message = (request.data.get("message") or "").strip()
-        if not message:
+        params = _parse_chat_request(request.data)
+        if params is None:
             return Response({"detail": "O campo 'message' é obrigatório."}, status=400)
 
-        materia = request.data.get("materia") or None
-        top_k = int(request.data.get("top_k") or chat_settings.DEFAULT_TOP_K)
-        similarity_threshold = float(
-            request.data.get("similarity_threshold")
-            or chat_settings.DEFAULT_SIMILARITY_THRESHOLD
-        )
-        model_name = request.data.get("model") or chat_settings.DEFAULT_CHAT_MODEL
-        temperature = float(
-            request.data.get("temperature") or chat_settings.DEFAULT_TEMPERATURE
-        )
-        max_tokens = int(
-            request.data.get("max_tokens") or chat_settings.DEFAULT_MAX_TOKENS
-        )
-        grounding = bool(request.data.get("grounding", True))
-
-        api_key = (
-            request.headers.get("X-Google-Api-Key")
-            or request.data.get("api_key")
-            or os.environ.get("GOOGLE_API_KEY")
-        )
+        api_key = _resolve_api_key(request, request.data)
         if not api_key:
             return Response(
                 {"detail": "Nenhuma chave de API do Google foi configurada."},
@@ -194,48 +308,79 @@ class ChatMessageView(APIView):
 
         collected: list = []
         tools = None
-        if grounding:
+        if params["grounding"]:
             tools = [
-                _build_retrieve_tool(materia, top_k, similarity_threshold, collected)
+                _build_retrieve_tool(
+                    params["materia"], params["top_k"], params["similarity_threshold"], collected
+                )
             ]
 
         try:
             answer = asyncio.run(
                 _generate_answer(
-                    message,
+                    params["message"],
                     api_key=api_key,
-                    model_name=model_name,
-                    temperature=temperature,
-                    max_tokens=max_tokens,
+                    model_name=params["model_name"],
+                    temperature=params["temperature"],
+                    max_tokens=params["max_tokens"],
                     tools=tools,
                 )
             )
         except Exception as exc:
             answer = f"Ocorreu um erro ao gerar a resposta: {exc}"
 
-        sources = [
-            {
-                "score": score,
-                "questao": {
-                    "id": str(questao.id),
-                    "numero": questao.numero,
-                    "enunciado": questao.enunciado,
-                    "subquestoes": questao.subquestoes,
-                    "resposta": questao.resposta,
-                    "pontuacao": questao.pontuacao,
-                    "nota_recebida": questao.nota_recebida,
-                },
-                "provas": [
-                    {
-                        "materia": prova.materia,
-                        "professor": prova.professor,
-                        "ano_semestre": prova.ano_semestre,
-                        "numero_avaliacao": prova.numero_avaliacao,
-                    }
-                    for prova in questao.provas.all()
-                ],
-            }
-            for score, questao in collected
-        ]
+        sources = _serialize_sources(collected)
 
-        return Response({"query": message, "answer": answer, "sources": sources})
+        return Response({"query": params["message"], "answer": answer, "sources": sources})
+
+
+@method_decorator(csrf_exempt, name="dispatch")
+class ChatStreamView(View):
+    """Streams the chat answer as SSE text deltas, ending with a `done` event
+    carrying the sources. Plain Django View (not DRF) so we can return a
+    StreamingHttpResponse without DRF's response/renderer machinery. CSRF is
+    exempted here the same way DRF's APIView exempts ChatMessageView."""
+
+    def post(self, request):
+        try:
+            data = json.loads(request.body or b"{}")
+        except json.JSONDecodeError:
+            return JsonResponse({"detail": "JSON inválido."}, status=400)
+
+        params = _parse_chat_request(data)
+        if params is None:
+            return JsonResponse(
+                {"detail": "O campo 'message' é obrigatório."}, status=400
+            )
+
+        api_key = _resolve_api_key(request, data)
+        if not api_key:
+            return JsonResponse(
+                {"detail": "Nenhuma chave de API do Google foi configurada."},
+                status=400,
+            )
+
+        collected: list = []
+        tools = None
+        if params["grounding"]:
+            tools = [
+                _build_retrieve_tool(
+                    params["materia"], params["top_k"], params["similarity_threshold"], collected
+                )
+            ]
+
+        response = StreamingHttpResponse(
+            _stream_chat_events(
+                message=params["message"],
+                api_key=api_key,
+                model_name=params["model_name"],
+                temperature=params["temperature"],
+                max_tokens=params["max_tokens"],
+                tools=tools,
+                collected=collected,
+            ),
+            content_type="text/event-stream",
+        )
+        response["Cache-Control"] = "no-cache"
+        response["X-Accel-Buffering"] = "no"
+        return response

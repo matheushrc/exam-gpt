@@ -96,14 +96,16 @@ def search(
     }
 
     questao_ids = [chunk.id_questao_id for chunk in chunks.values()]
-    prova_by_questao_id = {
-        link.questao_id: link.prova
-        for link in Prova.questoes.through.objects.filter(
-            questao_id__in=questao_ids
-        ).select_related("prova")
-    }
+    provas_by_questao_id: dict[int, list[Prova]] = {}
+    for link in Prova.questoes.through.objects.filter(
+        questao_id__in=questao_ids
+    ).select_related("prova"):
+        provas_by_questao_id.setdefault(link.questao_id, []).append(link.prova)
+
     for chunk in chunks.values():
-        chunk.id_questao.prova = prova_by_questao_id.get(chunk.id_questao_id)
+        chunk.id_questao.provas_resolved = provas_by_questao_id.get(
+            chunk.id_questao_id, []
+        )
 
     return [
         (id_scores[turbo_id], chunks[turbo_id].id_questao)

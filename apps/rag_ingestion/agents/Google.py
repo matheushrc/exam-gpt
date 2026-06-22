@@ -132,3 +132,22 @@ class GoogleAgent:
         )
 
         return result
+
+    def run_stream(
+        self,
+        agent: Agent,
+        user_prompt: str = "",
+        message_history: list[Any] | None = None,
+    ):
+        """Returns the `agent.run_stream()` async context manager for live
+        token streaming. Use as:
+
+            async with google_client.run_stream(agent=agent, user_prompt=q) as result:
+                async for delta in result.stream_text(delta=True):
+                    ...
+        """
+        run_kwargs = {}
+        if message_history:
+            run_kwargs["message_history"] = message_history
+
+        return agent.run_stream(user_prompt=user_prompt, **run_kwargs)

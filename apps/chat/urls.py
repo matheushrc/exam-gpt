@@ -9,6 +9,11 @@ urlpatterns = [
         view=views.ChatMessageView.as_view(),
         name="chat-message",
     ),
+    path(
+        route="api/chat/stream/",
+        view=views.ChatStreamView.as_view(),
+        name="chat-message-stream",
+    ),
     path(route="api/semesters/", view=views.SemestersView.as_view(), name="semesters"),
     path(
         route="api/semesters/<str:semester>/groups/",
