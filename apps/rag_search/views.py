@@ -59,7 +59,6 @@ class SearchView(APIView):
                     "score": score,
                     "questao": {
                         "id": str(questao.id),
-                        "numero": questao.numero,
                         "enunciado": questao.enunciado,
                         "subquestoes": questao.subquestoes,
                         "resposta": questao.resposta,

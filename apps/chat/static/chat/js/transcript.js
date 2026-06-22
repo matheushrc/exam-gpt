@@ -102,7 +102,7 @@
     var materiaInfo = document.createElement("span");
     materiaInfo.className = "materia-info";
     materiaInfo.textContent =
-      (prova.materia || "Matéria") + " · Questão " + (questao.numero || "?");
+      (prova.materia || "Matéria") + " · Questão " + (questao.ordem || "?");
     header.appendChild(materiaInfo);
 
     card.appendChild(header);

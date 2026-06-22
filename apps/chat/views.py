@@ -83,14 +83,14 @@ def _format_context(results):
         prova = provas[0] if provas else None
         if prova:
             header = (
-                f"[{prova.materia} Q{questao.numero}] "
+                f"[{prova.materia} Q{questao.ordem}] "
                 f"(professor: {prova.professor}, "
                 f"semestre: {prova.ano_semestre}, "
                 f"avaliação: {prova.numero_avaliacao}, "
                 f"score: {score:.3f})"
             )
         else:
-            header = f"[Questão {questao.numero}] (score: {score:.3f})"
+            header = f"[Questão {questao.ordem}] (score: {score:.3f})"
 
         block = f"{header}\nEnunciado: {questao.enunciado}"
         if questao.resposta:
@@ -165,7 +165,7 @@ def _serialize_sources(collected: list) -> list[dict]:
             "score": score,
             "questao": {
                 "id": str(questao.id),
-                "numero": questao.numero,
+                "ordem": questao.ordem,
                 "enunciado": questao.enunciado,
                 "subquestoes": questao.subquestoes,
                 "resposta": questao.resposta,
