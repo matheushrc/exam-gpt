@@ -1,7 +1,9 @@
 import json
 from pathlib import Path
 
-CACHE_ROOT = Path("cache/schedule")
+from apps.chat.settings import chat_settings
+
+CACHE_ROOT = Path(chat_settings.CACHE_ROOT)
 
 
 def get_semesters() -> list[str]:

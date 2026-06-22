@@ -5,11 +5,13 @@ import requests
 from bs4 import BeautifulSoup
 from django.core.management.base import BaseCommand
 
-HORARIO_ENDPOINT = "https://cc.uffs.edu.br/horario/"
-GROUPS_ENDPOINT = "https://cc.uffs.edu.br/horario/data/{semester}/groups.json"
-SCHEDULE_ENDPOINT = "https://cc.uffs.edu.br/horario/data/{semester}/schedule.json"
+from apps.chat.settings import chat_settings
 
-CACHE_ROOT = Path("cache/schedule")
+HORARIO_ENDPOINT = chat_settings.HORARIO_ENDPOINT
+GROUPS_ENDPOINT = chat_settings.GROUPS_ENDPOINT
+SCHEDULE_ENDPOINT = chat_settings.SCHEDULE_ENDPOINT
+
+CACHE_ROOT = Path(chat_settings.CACHE_ROOT)
 
 
 class Command(BaseCommand):

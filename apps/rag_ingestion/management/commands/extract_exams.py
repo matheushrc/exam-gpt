@@ -28,11 +28,11 @@ from apps.rag_ingestion.extract import (
     extract_exam_from_images,
     extract_exam_from_pdf,
 )
+from apps.rag_ingestion.settings import embeddings_settings
 from apps.rag_ingestion.utils import load_images_from_folder
-from settings.settings import BASE_DIR
 
-INPUT_ROOT = Path(BASE_DIR) / "input" / "provas"
-OUTPUT_ROOT = Path(BASE_DIR) / "input" / "converted_provas"
+INPUT_ROOT = Path(embeddings_settings.INPUT_ROOT)
+OUTPUT_ROOT = Path(embeddings_settings.OUTPUT_ROOT)
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png"}
 PDF_EXTENSION = ".pdf"
 

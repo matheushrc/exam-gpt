@@ -15,8 +15,9 @@ from apps.rag_ingestion.agents.Google import GoogleAgent
 from apps.rag_ingestion.pdf_convert import InferenceType
 from apps.rag_ingestion.prompts import EXAM_PROMPT, NAMING_PATTERN_PROMPT
 from apps.rag_ingestion.schemas.prova import Prova
+from apps.rag_ingestion.settings import embeddings_settings
 
-DEFAULT_EXTRACTION_MODEL = "gemini-3.5-flash"
+DEFAULT_EXTRACTION_MODEL = embeddings_settings.EXTRACTION_MODEL
 
 
 class ExamFileName(BaseModel):

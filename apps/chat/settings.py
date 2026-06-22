@@ -10,5 +10,12 @@ class ChatSettings(BaseSettings):
     DEFAULT_TEMPERATURE: float = 0.0
     DEFAULT_MAX_TOKENS: int = 8192
 
+    HORARIO_ENDPOINT: str = "https://cc.uffs.edu.br/horario/"
+    GROUPS_ENDPOINT: str = "https://cc.uffs.edu.br/horario/data/{semester}/groups.json"
+    SCHEDULE_ENDPOINT: str = (
+        "https://cc.uffs.edu.br/horario/data/{semester}/schedule.json"
+    )
+    CACHE_ROOT: str = "cache/schedule"
+
 
 chat_settings = ChatSettings()

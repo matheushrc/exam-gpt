@@ -9,6 +9,9 @@ class EmbeddingsSettings(BaseSettings):
     INDEX_PATH: str = f"{BASE_DIR}/indexes/index.tvim"
     EMBEDDING_MODEL: str = "gemini-embedding-2"
     EMBEDDING_DIMS: int = 768
+    EXTRACTION_MODEL: str = "gemini-3.5-flash"
+    INPUT_ROOT: str = f"{BASE_DIR}/input/provas"
+    OUTPUT_ROOT: str = f"{BASE_DIR}/input/converted_provas"
 
 
 embeddings_settings = EmbeddingsSettings()
