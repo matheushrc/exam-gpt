@@ -1,0 +1,13 @@
+@media (max-width: 640px) {
+  .review-meta-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .upload-footer {
+    flex-wrap: wrap;
+  }
+
+  .grade-input {
+    width: 100%;
+  }
+}

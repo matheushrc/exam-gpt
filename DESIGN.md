@@ -279,8 +279,8 @@ partials in `templates/partials/` and the shared shell scripts
 - Content scrolls in `.chat-scroll` (an **inner** scroll container), not the
   window — keep this in mind when scripting scroll/scroll-into-view.
 - **Mobile (`max-width: 640px`):** the sidebar drops to a bottom tab bar and the
-  metadata grid collapses to one column (see `base.css` and `upload-screen.css`
-  media queries).
+  metadata grid collapses to one column (see `base.css` and
+  `apps/upload/static/upload/css/responsive.css` media queries).
 
 ---
 
@@ -291,8 +291,10 @@ and the chat shell, split by concern under
 [`apps/chat/static/chat/css/`](apps/chat/static/chat/css/) (`sidebar.css`,
 `user-menu.css`, `settings-modal.css`, `chat-area.css`, `right-panel.css`,
 `layout.css`, `responsive.css`). Screen-specific components live beside their
-app (e.g.
-[`apps/upload/static/upload/css/upload-screen.css`](apps/upload/static/upload/css/upload-screen.css)).
+app, split by concern under
+[`apps/upload/static/upload/css/`](apps/upload/static/upload/css/)
+(`upload-intro.css`, `upload-review.css`, `multiselect.css`,
+`markdown-editor.css`, `question-editor.css`, `responsive.css`).
 
 - **Buttons** — `.btn-primary` (accent fill, `--color-on-accent` text) and
   `.btn-secondary` (card surface, bordered). Min height 44px; disabled states use
@@ -368,7 +370,12 @@ Rendering uses [marked](https://marked.js.org) + [KaTeX](https://katex.org)
 | `apps/chat/static/chat/css/responsive.css`            | ≤640px mobile overrides                                         |
 | `apps/chat/static/chat/js/right-panel.js`             | Right-panel settings + collapse                                 |
 | `apps/chat/static/chat/js/transcript.js`              | Chat transcript render + streaming send                         |
-| `apps/upload/static/upload/css/upload-screen.css`     | Upload/review screen components                                 |
+| `apps/upload/static/upload/css/upload-intro.css`      | Upload intro, dropzone, processing card                         |
+| `apps/upload/static/upload/css/upload-review.css`     | Review file card, metadata, recuperação, questions, footer      |
+| `apps/upload/static/upload/css/multiselect.css`       | Chip multiselect (professores, cursos)                          |
+| `apps/upload/static/upload/css/markdown-editor.css`   | Review markdown field tabs/textarea/preview                     |
+| `apps/upload/static/upload/css/question-editor.css`   | Question editor, grades, subquestions, add buttons              |
+| `apps/upload/static/upload/css/responsive.css`        | ≤640px mobile overrides (upload screen)                         |
 
 > Note: `staticfiles/` holds the **source** static assets served by Django's
 > staticfiles finders in `DEBUG`. `static_collected/` is `collectstatic` output
