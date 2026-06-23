@@ -43,6 +43,10 @@
   .right-panel {
     position: fixed;
     inset: 0;
+    /* Anchor to the right edge so the width-spring open/close reveals the
+       panel from the right (a right-side drawer) instead of growing from
+       the left edge. */
+    left: auto;
     z-index: 40;
     width: 100%;
   }

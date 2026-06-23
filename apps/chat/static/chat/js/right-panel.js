@@ -62,8 +62,13 @@
       panel.style.width = panel.getBoundingClientRect().width + "px";
       panel.classList.remove("collapsed");
       toggle.classList.add("active");
-      var target = getComputedStyle(panel).getPropertyValue("--right-panel-width");
-      springWidth(panel, parseFloat(target));
+      // On mobile the panel is a full-width overlay (responsive.css), so spring
+      // to the viewport width -- springing to --right-panel-width instead would
+      // settle short and then snap to full width when the inline style clears.
+      var target = window.matchMedia("(max-width: 640px)").matches
+        ? document.documentElement.clientWidth
+        : parseFloat(getComputedStyle(panel).getPropertyValue("--right-panel-width"));
+      springWidth(panel, target);
     }
     toggle.addEventListener("click", function () {
       if (panel.classList.contains("collapsed")) {
