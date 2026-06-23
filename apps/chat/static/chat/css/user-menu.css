@@ -49,6 +49,13 @@
   background: var(--color-surface);
 }
 
+/* The settings item leads with an icon + label and should keep them together
+   on the left. The variant items below instead use the inherited
+   space-between to push their trailing check-icon to the right edge. */
+#open-settings-modal {
+  justify-content: flex-start;
+}
+
 .variant-item .check-icon {
   opacity: 0;
   color: var(--color-accent);
