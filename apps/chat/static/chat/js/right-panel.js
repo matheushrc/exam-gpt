@@ -14,12 +14,8 @@
     var saveSetting = window.PGShell.saveSetting;
     var springWidth = window.PGShell.springWidth;
 
-    // On mobile the panel becomes a full-screen overlay (responsive.css);
-    // default to collapsed there so the chat is visible on first load.
-    if (window.matchMedia("(max-width: 640px)").matches) {
-      panel.classList.add("collapsed");
-      toggle.classList.remove("active");
-    }
+    // The mobile default-collapsed state is applied before first paint by an
+    // inline script in chat.html; deferring it here flashes the panel open.
 
     var closeBtn = document.getElementById("right-panel-close");
     var groundingBtn = document.getElementById("setting-grounding");
