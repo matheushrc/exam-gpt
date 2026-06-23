@@ -5,6 +5,7 @@
 
 /* ── Question card (editor) ───────────────────────────────────────────── */
 .review-question-card {
+  position: relative;
   gap: 13px;
   border-left: 3px solid transparent;
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
@@ -13,6 +14,15 @@
 .review-question-card:focus-within {
   border-left-color: var(--color-accent);
   box-shadow: 0 6px 22px -16px rgba(0, 0, 0, 0.4);
+}
+
+.review-question-card.dragging,
+.review-sub-card.dragging {
+  position: relative;
+  z-index: 5;
+  opacity: 0.85;
+  box-shadow: 0 14px 30px -12px rgba(0, 0, 0, 0.45);
+  transition: none;
 }
 
 .review-question-pts {
@@ -37,6 +47,21 @@
 .review-icon-btn:hover {
   color: var(--color-error);
   background: color-mix(in srgb, var(--color-error) 12%, transparent);
+}
+
+.review-grip {
+  cursor: grab;
+  touch-action: none;
+}
+
+.review-grip:hover {
+  color: var(--color-accent);
+  background: color-mix(in srgb, var(--color-accent) 12%, transparent);
+}
+
+.review-question-card.dragging .review-grip,
+.review-sub-card.dragging .review-grip {
+  cursor: grabbing;
 }
 
 .review-grade-row {

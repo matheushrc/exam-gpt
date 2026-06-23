@@ -438,6 +438,161 @@
     return block;
   }
 
+  /* ---------------- drag-to-reorder (pointer events) ---------------- */
+
+  // Builds the 6-dot grip button shared by question/sub headers.
+  function gripButton(title) {
+    var grip = el("button", "review-icon-btn review-grip", "");
+    grip.type = "button";
+    grip.title = title;
+    grip.innerHTML =
+      '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">' +
+      '<circle cx="9" cy="5" r="1.5"/><circle cx="9" cy="12" r="1.5"/><circle cx="9" cy="19" r="1.5"/>' +
+      '<circle cx="15" cy="5" r="1.5"/><circle cx="15" cy="12" r="1.5"/><circle cx="15" cy="19" r="1.5"/>' +
+      "</svg>";
+    return grip;
+  }
+
+  // Wires pointer-based drag-to-reorder onto `grip` for `card`, scoped to the
+  // sibling elements matching `cardClass` inside `container`. `getList` returns
+  // the live array backing the rendered cards (e.g. prova.questoes, or a given
+  // question's subquestoes); `onReorder` triggers the full re-render after the
+  // array is spliced. Index computation only ever considers `container`'s
+  // `cardClass` children, so a sub's drag never sees another question's subs
+  // and a question's drag never sees a sub list — the scope is fixed at the
+  // call site below, not discovered at drag time.
+  function enableDragReorder(opts) {
+    var grip = opts.grip;
+    var card = opts.card;
+    // `container` may be the element itself, or a function returning it —
+    // sub cards aren't appended to their `.review-subs` wrap until after
+    // `subCard()` returns, so they pass a function resolved lazily at drag
+    // time once the card is definitely in the DOM.
+    var getContainer =
+      typeof opts.container === "function" ? opts.container : function () {
+        return opts.container;
+      };
+    var cardClass = opts.cardClass;
+    var getList = opts.getList;
+    var onReorder = opts.onReorder;
+
+    var dragging = false;
+    var pointerId = null;
+    var startY = 0;
+    var startIndex = -1;
+    var cardHeight = 0;
+    // Other cards in container, excluding the dragged one, sorted by their
+    // original top position (their order before the drag started).
+    var siblingsByOrder = [];
+
+    function cardsInContainer() {
+      var container = getContainer();
+      if (!container) return [];
+      return Array.prototype.slice
+        .call(container.children)
+        .filter(function (node) {
+          return node.classList && node.classList.contains(cardClass);
+        });
+    }
+
+    function clearTransforms() {
+      card.style.transform = "";
+      siblingsByOrder.forEach(function (s) {
+        s.el.style.transform = "";
+      });
+    }
+
+    // Number of siblings whose original midpoint sits above `currentY` —
+    // i.e. the final index the dragged card would occupy if dropped there.
+    function computeTargetIndex(currentY) {
+      var above = 0;
+      siblingsByOrder.forEach(function (s) {
+        var mid = s.top + cardHeight / 2;
+        if (mid < currentY) above++;
+      });
+      return above;
+    }
+
+    function onPointerDown(e) {
+      if (dragging) return;
+      e.preventDefault();
+      var all = cardsInContainer();
+      startIndex = all.indexOf(card);
+      if (startIndex === -1) return;
+
+      dragging = true;
+      pointerId = e.pointerId;
+      startY = e.clientY;
+      cardHeight = card.getBoundingClientRect().height;
+      siblingsByOrder = all
+        .filter(function (node) {
+          return node !== card;
+        })
+        .map(function (node) {
+          return { el: node, top: node.getBoundingClientRect().top };
+        })
+        .sort(function (a, b) {
+          return a.top - b.top;
+        });
+
+      try {
+        grip.setPointerCapture(pointerId);
+      } catch (err) {
+        // ignore — some browsers may not support capture on the grip element
+      }
+      card.classList.add("dragging");
+
+      grip.addEventListener("pointermove", onPointerMove);
+      grip.addEventListener("pointerup", onPointerUp);
+      grip.addEventListener("pointercancel", onPointerUp);
+    }
+
+    function onPointerMove(e) {
+      if (!dragging) return;
+      var dy = e.clientY - startY;
+      card.style.transform = "translateY(" + dy + "px)";
+
+      // Preview the gap: siblings that the dragged card has moved past shift
+      // by one card-height to make room.
+      var targetIndex = computeTargetIndex(e.clientY);
+      siblingsByOrder.forEach(function (s, pos) {
+        var shift = 0;
+        if (pos >= targetIndex && pos < startIndex) {
+          shift = cardHeight;
+        } else if (pos < targetIndex && pos >= startIndex) {
+          shift = -cardHeight;
+        }
+        s.el.style.transform = shift ? "translateY(" + shift + "px)" : "";
+      });
+    }
+
+    function onPointerUp(e) {
+      if (!dragging) return;
+      dragging = false;
+      try {
+        grip.releasePointerCapture(pointerId);
+      } catch (err) {
+        // ignore
+      }
+      grip.removeEventListener("pointermove", onPointerMove);
+      grip.removeEventListener("pointerup", onPointerUp);
+      grip.removeEventListener("pointercancel", onPointerUp);
+      card.classList.remove("dragging");
+
+      var targetIndex = computeTargetIndex(e.clientY);
+      clearTransforms();
+
+      if (targetIndex !== startIndex) {
+        var list = getList();
+        var item = list.splice(startIndex, 1)[0];
+        list.splice(targetIndex, 0, item);
+        onReorder();
+      }
+    }
+
+    grip.addEventListener("pointerdown", onPointerDown);
+  }
+
   /* ---------------- review rendering ---------------- */
 
   function renderReview() {
@@ -678,7 +833,21 @@
       updateTotals();
     });
     head.appendChild(del);
+
+    var grip = gripButton("Arrastar para reordenar");
+    head.appendChild(grip);
     card.appendChild(head);
+
+    enableDragReorder({
+      grip: grip,
+      card: card,
+      container: els.questions,
+      cardClass: "review-question-card",
+      getList: function () {
+        return prova.questoes;
+      },
+      onReorder: renderQuestions,
+    });
 
     /* enunciado */
     var enunBlock = fieldBlock("Enunciado");
@@ -818,7 +987,33 @@
       onGradeChange && onGradeChange();
     });
     head.appendChild(del);
+
+    var grip = gripButton("Arrastar para reordenar");
+    head.appendChild(grip);
     wrap.appendChild(head);
+
+    // Sub cards are only appended to subsWrap after this function returns, so
+    // the container/getList/onReorder closures resolve `wrap.parentElement`
+    // and the owning question card lazily — by the time the grip is actually
+    // dragged, both are in the DOM. Scoped strictly to this question's own
+    // subsWrap: a sub can never be dropped into another question's list
+    // because enableDragReorder only ever inspects `wrap.parentElement`'s
+    // `.review-sub-card` children.
+    enableDragReorder({
+      grip: grip,
+      card: wrap,
+      container: function () {
+        return wrap.parentElement;
+      },
+      cardClass: "review-sub-card",
+      getList: function () {
+        return q.subquestoes;
+      },
+      onReorder: function () {
+        var ownerCard = wrap.closest(".review-question-card");
+        if (ownerCard && ownerCard._renderSubs) ownerCard._renderSubs();
+      },
+    });
 
     var enunBlock = fieldBlock("Enunciado");
     enunBlock.appendChild(
