@@ -49,6 +49,32 @@ class LoggingConfigTests(SimpleTestCase):
         self.assertNotIn("Command started", messages)
         self.assertIn("a real pymongo warning", messages)
 
+    def test_refinedoc_warning_noise_is_suppressed(self):
+        # refinedoc's header/footer heuristic logs a WARNING ("Candidate
+        # quantity is too high for the document. Set to 1") whenever a PDF is
+        # short enough that the heuristic clamps -- routine, says nothing about
+        # extraction quality. configure_logging raises the refinedoc logger to
+        # ERROR; genuine errors still surface. (Same fix used in the geogis
+        # split_n_convert_pdf lambda.)
+        configure_logging(debug=True)
+        records = []
+        sink_id = logger.add(records.append, format="{message}")
+        try:
+            logging.getLogger("refinedoc.refined_document").warning(
+                "Candidate quantity is too high for the document. Set to 1"
+            )
+            logging.getLogger("refinedoc.refined_document").error(
+                "a real refinedoc error"
+            )
+        finally:
+            logger.remove(sink_id)
+
+        messages = [r.record["message"] for r in records]
+        self.assertNotIn(
+            "Candidate quantity is too high for the document. Set to 1", messages
+        )
+        self.assertIn("a real refinedoc error", messages)
+
     def test_third_party_debug_noise_is_suppressed_regardless_of_debug_flag(self):
         configure_logging(debug=True)
         records = []

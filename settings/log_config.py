@@ -63,3 +63,13 @@ def configure_logging(debug: bool) -> None:
     # code logs via `from loguru import logger` directly, bypassing this bridge
     # entirely, so it's unaffected and still governed by `level` above.
     logging.basicConfig(handlers=[InterceptHandler()], level=logging.WARNING, force=True)
+
+    # A few third-party libraries emit WARNING-level lines that are routine for
+    # them but noise for us, so the WARNING floor above isn't enough -- raise
+    # just those loggers to ERROR. `refinedoc` (PDF header/footer refinement in
+    # rag_ingestion) warns "Candidate quantity is too high for the document. Set
+    # to 1" whenever a document is short enough that its header/footer heuristic
+    # clamps; that says nothing about extraction quality. Genuine errors still
+    # surface.
+    for noisy_logger in ("refinedoc",):
+        logging.getLogger(noisy_logger).setLevel(logging.ERROR)
