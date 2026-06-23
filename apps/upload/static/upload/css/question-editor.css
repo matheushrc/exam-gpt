@@ -193,37 +193,42 @@
 .review-subs {
   display: flex;
   flex-direction: column;
-  gap: 10px;
-  margin-left: 14px;
+  gap: 8px;
+  margin-left: 2px;
   padding-left: 14px;
   border-left: 2px solid var(--color-border);
 }
 
 .review-sub-card {
-  display: flex;
-  flex-direction: column;
-  gap: 11px;
   border: 1px solid var(--color-border);
   border-radius: 11px;
   background: var(--color-bg);
-  padding: 12px 13px;
+  overflow: hidden;
+}
+
+.review-sub-card.is-open {
+  border-color: var(--color-accent);
 }
 
 .review-sub-head {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 9px;
+  padding: 9px 11px;
+  cursor: pointer;
+  user-select: none;
 }
 
-/* Push the trash+grip group to the right edge, adjacent, mirroring the
-   question header. Only the first icon gets the auto margin so the two icons
-   stay together instead of spreading apart. */
-.review-sub-head .review-icon-btn:first-child {
-  margin-left: auto;
+.review-sub-index {
+  text-transform: none;
 }
 
-.review-sub-head .review-grip {
-  margin-left: 4px;
+.review-sub-body {
+  padding: 0 11px 11px;
+}
+
+.review-sub-card:not(.is-open) .review-sub-body {
+  display: none;
 }
 
 /* ── Add buttons ──────────────────────────────────────────────────────── */

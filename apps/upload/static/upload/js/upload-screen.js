@@ -1067,35 +1067,94 @@
   function subCard(q, sub, sidx, onGradeChange) {
     var wrap = el("div", "review-sub-card");
 
+    /* ── header summary row ── */
     var head = el("div", "review-sub-head");
+
+    var grip = gripButton("Arrastar para reordenar");
+    head.appendChild(grip);
+
+    var index = el("span", "review-q-index review-sub-index", subIndexLabel(sidx));
+    head.appendChild(index);
+
+    var preview = el("span", "review-q-preview");
+    head.appendChild(preview);
+
+    var meta = el("div", "review-q-meta");
+
+    var badge = el("span", "review-question-pts");
+
+    var headGrades = el("div", "review-head-grade hidden");
+    var headGradesBuilt = false;
+    function buildHeadGrades() {
+      if (headGradesBuilt) return;
+      headGradesBuilt = true;
+      var ptsWrap = el("label", "review-grade-num");
+      ptsWrap.appendChild(el("span", "review-grade-num-label", "pts"));
+      ptsWrap.appendChild(
+        gradeInput(sub.pontuacao, {
+          placeholder: "0",
+          onChange: function (v) {
+            sub.pontuacao = v;
+            renderHeadMeta();
+            onGradeChange && onGradeChange();
+          },
+        })
+      );
+      var notaWrap = el("label", "review-grade-num");
+      notaWrap.appendChild(el("span", "review-grade-num-label", "nota"));
+      notaWrap.appendChild(
+        gradeInput(sub.nota_recebida, {
+          placeholder: "—",
+          onChange: function (v) {
+            sub.nota_recebida = v;
+            renderHeadMeta();
+            onGradeChange && onGradeChange();
+          },
+        })
+      );
+      headGrades.appendChild(ptsWrap);
+      headGrades.appendChild(notaWrap);
+    }
 
     var del = el("button", "review-icon-btn", "");
     del.type = "button";
     del.title = "Remover subquestão";
     del.innerHTML =
       '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>';
-    del.addEventListener("click", function () {
+    del.addEventListener("click", function (e) {
+      e.stopPropagation();
       q.subquestoes.splice(sidx, 1);
-      // Re-render the whole card's subs + grade row + resp block via parent helpers.
       var card = wrap.closest(".review-question-card");
       if (card && card._renderSubs) card._renderSubs();
-      if (card && card._renderGradeRow) card._renderGradeRow();
       if (card && card._renderRespBlock) card._renderRespBlock();
+      if (card && card._renderHeadMeta) card._renderHeadMeta();
       onGradeChange && onGradeChange();
     });
-    head.appendChild(del);
 
-    var grip = gripButton("Arrastar para reordenar");
-    head.appendChild(grip);
+    var caret = el("span", "review-q-caret");
+    caret.innerHTML =
+      '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>';
+
+    meta.appendChild(badge);
+    meta.appendChild(headGrades);
+    meta.appendChild(del);
+    meta.appendChild(caret);
+    head.appendChild(meta);
     wrap.appendChild(head);
 
-    // Sub cards are only appended to subsWrap after this function returns, so
-    // the container/getList/onReorder closures resolve `wrap.parentElement`
-    // and the owning question card lazily — by the time the grip is actually
-    // dragged, both are in the DOM. Scoped strictly to this question's own
-    // subsWrap: a sub can never be dropped into another question's list
-    // because enableDragReorder only ever inspects `wrap.parentElement`'s
-    // `.review-sub-card` children.
+    grip.addEventListener("click", function (e) {
+      e.stopPropagation();
+    });
+    headGrades.addEventListener("click", function (e) {
+      e.stopPropagation();
+    });
+    headGrades.addEventListener("pointerdown", function (e) {
+      e.stopPropagation();
+    });
+    head.addEventListener("click", function () {
+      toggleOpen();
+    });
+
     enableDragReorder({
       grip: grip,
       card: wrap,
@@ -1112,6 +1171,10 @@
       },
     });
 
+    /* ── body: 2-column editor grid ── */
+    var body = el("div", "review-question-body review-sub-body");
+    var grid = el("div", "review-editor-grid");
+
     var enunBlock = fieldBlock("Enunciado");
     enunBlock.appendChild(
       markdownField(sub.enunciado, {
@@ -1119,38 +1182,11 @@
         rows: 2,
         onChange: function (v) {
           sub.enunciado = v;
+          renderPreview();
         },
       })
     );
-    wrap.appendChild(enunBlock);
-
-    var gradeRow = el("div", "review-grade-row");
-    var ptsField = el("div", "review-grade-field");
-    ptsField.appendChild(el("span", "review-field-label", "Pontuação"));
-    ptsField.appendChild(
-      gradeInput(sub.pontuacao, {
-        placeholder: "0",
-        onChange: function (v) {
-          sub.pontuacao = v;
-          onGradeChange && onGradeChange();
-        },
-      })
-    );
-    gradeRow.appendChild(ptsField);
-
-    var notaField = el("div", "review-grade-field");
-    notaField.appendChild(el("span", "review-field-label", "Nota recebida"));
-    notaField.appendChild(
-      gradeInput(sub.nota_recebida, {
-        placeholder: "em branco",
-        onChange: function (v) {
-          sub.nota_recebida = v;
-          onGradeChange && onGradeChange();
-        },
-      })
-    );
-    gradeRow.appendChild(notaField);
-    wrap.appendChild(gradeRow);
+    grid.appendChild(enunBlock);
 
     var respBlock = fieldBlock("Resposta / gabarito");
     respBlock.appendChild(
@@ -1162,7 +1198,34 @@
         },
       })
     );
-    wrap.appendChild(respBlock);
+    grid.appendChild(respBlock);
+    body.appendChild(grid);
+    wrap.appendChild(body);
+
+    /* ── state ── */
+    function renderPreview() {
+      var text = firstLine(sub.enunciado);
+      preview.textContent = text || "Sem enunciado";
+      preview.classList.toggle("review-q-preview-empty", !text);
+    }
+
+    function renderHeadMeta() {
+      var open = wrap.classList.contains("is-open");
+      var nota = sub.nota_recebida;
+      badge.textContent =
+        fmtPts(sub.pontuacao) + " / " + (nota == null ? "—" : fmtPts(nota));
+      if (open) buildHeadGrades();
+      headGrades.classList.toggle("hidden", !open);
+      badge.classList.toggle("hidden", open);
+    }
+
+    function toggleOpen() {
+      wrap.classList.toggle("is-open");
+      renderHeadMeta();
+    }
+
+    renderPreview();
+    renderHeadMeta();
 
     return wrap;
   }
