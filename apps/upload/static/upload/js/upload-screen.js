@@ -658,9 +658,6 @@
 
     /* header */
     var head = el("div", "review-question-head");
-    var num = el("span", "review-question-num", "Q" + (q.numero != null ? q.numero : idx + 1));
-    head.appendChild(num);
-
     var ptsBadge = el("span", "review-question-pts");
     head.appendChild(ptsBadge);
 
@@ -740,19 +737,26 @@
     renderGradeRow();
     card.appendChild(gradeRow);
 
-    /* resposta */
-    var respBlock = fieldBlock("Resposta / gabarito");
-    respBlock.appendChild(
-      markdownField(q.resposta || "", {
-        placeholder: "Resolução esperada (opcional)",
-        rows: 3,
-        onChange: function (v) {
-          q.resposta = v.trim() ? v : null;
-          tag.lastChild && (tag.childNodes[tag.childNodes.length - 1].textContent =
-            q.resposta ? "com gabarito" : "sem gabarito");
-        },
-      })
-    );
+    /* resposta (only when there are no subquestões — they carry their own) */
+    var respBlock = el("div", "review-field hidden");
+    function renderRespBlock() {
+      respBlock.innerHTML = "";
+      respBlock.classList.toggle("hidden", hasSubs(q));
+      if (hasSubs(q)) return;
+      respBlock.appendChild(el("span", "review-field-label", "Resposta / gabarito"));
+      respBlock.appendChild(
+        markdownField(q.resposta || "", {
+          placeholder: "Resolução esperada (opcional)",
+          rows: 3,
+          onChange: function (v) {
+            q.resposta = v.trim() ? v : null;
+            tag.lastChild && (tag.childNodes[tag.childNodes.length - 1].textContent =
+              q.resposta ? "com gabarito" : "sem gabarito");
+          },
+        })
+      );
+    }
+    renderRespBlock();
     card.appendChild(respBlock);
 
     /* subquestões */
@@ -770,9 +774,10 @@
       addSub.innerHTML =
         '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14M5 12h14"/></svg> Adicionar subquestão';
       addSub.addEventListener("click", function () {
-        q.subquestoes.push(newSubquestao(q.subquestoes.length));
+        q.subquestoes.push(newSubquestao());
         renderSubs();
         renderGradeRow();
+        renderRespBlock();
         refreshBadges();
         updateTotals();
       });
@@ -784,8 +789,9 @@
     function refreshBadges() {
       ptsBadge.textContent = fmtPts(effectivePontuacao(q)) + " pts";
     }
-    // expose so subCard deletion can re-render the parent grade row
+    // expose so subCard deletion can re-render the parent grade row / resp block
     card._renderGradeRow = renderGradeRow;
+    card._renderRespBlock = renderRespBlock;
     card._renderSubs = renderSubs;
     refreshBadges();
 
@@ -796,14 +802,6 @@
     var wrap = el("div", "review-sub-card");
 
     var head = el("div", "review-sub-head");
-    var labelInput = el("input", "review-sub-label");
-    labelInput.type = "text";
-    labelInput.value = sub.label || "";
-    labelInput.placeholder = "(a)";
-    labelInput.addEventListener("input", function () {
-      sub.label = labelInput.value;
-    });
-    head.appendChild(labelInput);
 
     var del = el("button", "review-icon-btn", "");
     del.type = "button";
@@ -812,10 +810,11 @@
       '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>';
     del.addEventListener("click", function () {
       q.subquestoes.splice(sidx, 1);
-      // Re-render the whole card's subs + grade row via parent helpers.
+      // Re-render the whole card's subs + grade row + resp block via parent helpers.
       var card = wrap.closest(".review-question-card");
       if (card && card._renderSubs) card._renderSubs();
       if (card && card._renderGradeRow) card._renderGradeRow();
+      if (card && card._renderRespBlock) card._renderRespBlock();
       onGradeChange && onGradeChange();
     });
     head.appendChild(del);
@@ -876,10 +875,8 @@
     return wrap;
   }
 
-  function newSubquestao(count) {
-    var labels = ["(a)", "(b)", "(c)", "(d)", "(e)", "(f)", "(g)", "(h)"];
+  function newSubquestao() {
     return {
-      label: labels[count] || "(" + (count + 1) + ")",
       enunciado: "",
       pontuacao: 0,
       resposta: null,
@@ -888,12 +885,7 @@
   }
 
   function addQuestion() {
-    var nums = (prova.questoes || []).map(function (q) {
-      return Number(q.numero) || 0;
-    });
-    var next = nums.length ? Math.max.apply(null, nums) + 1 : 1;
     prova.questoes.push({
-      numero: next,
       enunciado: "",
       pontuacao: 0,
       resposta: null,
