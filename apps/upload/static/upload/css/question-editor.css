@@ -3,14 +3,17 @@
    defines the base .review-question-card/.review-question-pts rules these
    selectors extend. */
 
-/* ── Question card (editor) ───────────────────────────────────────────── */
+/* ── Question card (collapsible editor) ───────────────────────────────── */
 .review-question-card {
   position: relative;
-  gap: 13px;
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
   border-left: 3px solid transparent;
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
 }
 
+.review-question-card.is-open,
 .review-question-card:focus-within {
   border-left-color: var(--color-accent);
   box-shadow: 0 6px 22px -16px rgba(0, 0, 0, 0.4);
@@ -23,6 +26,51 @@
   opacity: 0.85;
   box-shadow: 0 14px 30px -12px rgba(0, 0, 0, 0.45);
   transition: none;
+}
+
+/* clickable summary row */
+.review-question-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 11px 14px;
+  cursor: pointer;
+  user-select: none;
+}
+
+.review-q-index {
+  flex: none;
+  min-width: 16px;
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--color-accent);
+  font-variant-numeric: tabular-nums;
+}
+
+.review-q-preview {
+  flex: 1;
+  min-width: 0;
+  font-family: var(--font-serif);
+  font-size: 14px;
+  color: var(--color-text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.review-question-card.is-open .review-q-preview,
+.review-q-preview-empty {
+  color: var(--color-text-muted);
+  font-style: italic;
+}
+
+.review-q-meta {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  flex: none;
 }
 
 .review-question-pts {
@@ -38,10 +86,6 @@
   cursor: pointer;
   display: inline-flex;
   transition: background var(--transition-fast), color var(--transition-fast);
-}
-
-.review-question-head .review-icon-btn {
-  margin-left: 4px;
 }
 
 .review-icon-btn:hover {
@@ -64,16 +108,58 @@
   cursor: grabbing;
 }
 
-.review-grade-row {
-  display: flex;
-  gap: 14px;
-  flex-wrap: wrap;
+.review-q-caret {
+  display: inline-flex;
+  color: var(--color-text-muted);
+  transition: transform var(--transition-fast);
 }
 
-.review-grade-field {
+.review-question-card.is-open .review-q-caret {
+  transform: rotate(90deg);
+}
+
+/* inline header grade inputs (expanded, no subs) */
+.review-head-grade {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.review-grade-num {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--color-text-muted);
+}
+
+.review-head-grade .grade-input {
+  width: 58px;
+  height: 30px;
+  padding: 0 7px;
+  text-align: center;
+}
+
+/* expanded body */
+.review-question-body {
+  padding: 0 14px 14px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 12px;
+}
+
+.review-question-card:not(.is-open) .review-question-body {
+  display: none;
+}
+
+.review-editor-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+.review-editor-grid > .review-field {
+  min-width: 0;
 }
 
 .grade-input {

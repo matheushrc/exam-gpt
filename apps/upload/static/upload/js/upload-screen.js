@@ -82,6 +82,28 @@
     return Number(n || 0).toLocaleString("pt-BR", { maximumFractionDigits: 2 });
   }
 
+  // First line of the enunciado for the collapsed-row preview (CSS truncates
+  // with ellipsis; this just strips to one line and avoids rendering Markdown).
+  function firstLine(text) {
+    return String(text == null ? "" : text).split("\n")[0].trim();
+  }
+
+  // Presentational position labels — derived from list index at render time,
+  // never persisted or sent in the payload. Questions: 1, 2, 3…; subs: a, b, c…
+  function qIndexLabel(idx) {
+    return String(idx + 1);
+  }
+  function subIndexLabel(idx) {
+    var n = idx + 1;
+    var s = "";
+    while (n > 0) {
+      n--;
+      s = String.fromCharCode(97 + (n % 26)) + s;
+      n = Math.floor(n / 26);
+    }
+    return s;
+  }
+
   /* ---------------- extraction ---------------- */
 
   function startExtraction(files) {
@@ -811,32 +833,100 @@
   function questionCard(q, idx) {
     var card = el("div", "review-question-card");
 
-    /* header */
+    /* ── header: clickable summary row ── */
     var head = el("div", "review-question-head");
-    var ptsBadge = el("span", "review-question-pts");
-    head.appendChild(ptsBadge);
 
+    var grip = gripButton("Arrastar para reordenar");
+    head.appendChild(grip);
+
+    var index = el("span", "review-q-index", qIndexLabel(idx));
+    head.appendChild(index);
+
+    var preview = el("span", "review-q-preview");
+    head.appendChild(preview);
+
+    var meta = el("div", "review-q-meta");
+
+    // gabarito check (hidden when the question has subquestões — subs carry
+    // their own answers)
     var tag = el("span", "review-question-tag");
     tag.innerHTML =
-      '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>' +
-      (q.resposta ? "com gabarito" : "sem gabarito");
-    head.appendChild(tag);
+      '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>';
+
+    // collapsed read-only grade badge ("pts / nota")
+    var badge = el("span", "review-question-pts");
+
+    // expanded inline grade inputs (built lazily on first expand)
+    var headGrades = el("div", "review-head-grade hidden");
+    var headGradesBuilt = false;
+    function buildHeadGrades() {
+      if (headGradesBuilt) return;
+      headGradesBuilt = true;
+      var ptsWrap = el("label", "review-grade-num");
+      ptsWrap.appendChild(el("span", "review-grade-num-label", "pts"));
+      ptsWrap.appendChild(
+        gradeInput(q.pontuacao, {
+          placeholder: "0",
+          onChange: function (v) {
+            q.pontuacao = v;
+            renderHeadMeta();
+            updateTotals();
+          },
+        })
+      );
+      var notaWrap = el("label", "review-grade-num");
+      notaWrap.appendChild(el("span", "review-grade-num-label", "nota"));
+      notaWrap.appendChild(
+        gradeInput(q.nota_recebida, {
+          placeholder: "—",
+          onChange: function (v) {
+            q.nota_recebida = v;
+            renderHeadMeta();
+            updateTotals();
+          },
+        })
+      );
+      headGrades.appendChild(ptsWrap);
+      headGrades.appendChild(notaWrap);
+    }
 
     var del = el("button", "review-icon-btn", "");
     del.type = "button";
     del.title = "Remover questão";
     del.innerHTML =
       '<svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6"/></svg>';
-    del.addEventListener("click", function () {
+    del.addEventListener("click", function (e) {
+      e.stopPropagation();
       prova.questoes.splice(idx, 1);
       renderQuestions();
       updateTotals();
     });
-    head.appendChild(del);
 
-    var grip = gripButton("Arrastar para reordenar");
-    head.appendChild(grip);
+    var caret = el("span", "review-q-caret");
+    caret.innerHTML =
+      '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M9 6l6 6-6 6"/></svg>';
+
+    meta.appendChild(tag);
+    meta.appendChild(badge);
+    meta.appendChild(headGrades);
+    meta.appendChild(del);
+    meta.appendChild(caret);
+    head.appendChild(meta);
     card.appendChild(head);
+
+    // grip and grade inputs must never toggle the card open/closed.
+    grip.addEventListener("click", function (e) {
+      e.stopPropagation();
+    });
+    headGrades.addEventListener("click", function (e) {
+      e.stopPropagation();
+    });
+    headGrades.addEventListener("pointerdown", function (e) {
+      e.stopPropagation();
+    });
+    head.addEventListener("click", function () {
+      toggleOpen();
+    });
 
     enableDragReorder({
       grip: grip,
@@ -849,7 +939,11 @@
       onReorder: renderQuestions,
     });
 
-    /* enunciado */
+    /* ── body: 2-column editor grid + subnote + subs ── */
+    var body = el("div", "review-question-body");
+
+    var grid = el("div", "review-editor-grid");
+
     var enunBlock = fieldBlock("Enunciado");
     enunBlock.appendChild(
       markdownField(q.enunciado, {
@@ -857,86 +951,53 @@
         rows: 3,
         onChange: function (v) {
           q.enunciado = v;
+          renderPreview();
         },
       })
     );
-    card.appendChild(enunBlock);
+    grid.appendChild(enunBlock);
 
-    /* grades row (only when there are no subquestões) */
-    var gradeRow = el("div", "review-grade-row");
-    function renderGradeRow() {
-      gradeRow.innerHTML = "";
-      if (hasSubs(q)) {
-        var note = el(
-          "div",
-          "review-grade-note",
-          "Pontuação e nota são a soma das subquestões."
-        );
-        gradeRow.appendChild(note);
-      } else {
-        var ptsField = el("div", "review-grade-field");
-        ptsField.appendChild(el("span", "review-field-label", "Pontuação"));
-        ptsField.appendChild(
-          gradeInput(q.pontuacao, {
-            placeholder: "0",
-            onChange: function (v) {
-              q.pontuacao = v;
-              refreshBadges();
-              updateTotals();
-            },
-          })
-        );
-        gradeRow.appendChild(ptsField);
-
-        var notaField = el("div", "review-grade-field");
-        notaField.appendChild(el("span", "review-field-label", "Nota recebida"));
-        notaField.appendChild(
-          gradeInput(q.nota_recebida, {
-            placeholder: "em branco",
-            onChange: function (v) {
-              q.nota_recebida = v;
-              refreshBadges();
-              updateTotals();
-            },
-          })
-        );
-        gradeRow.appendChild(notaField);
-      }
-    }
-    renderGradeRow();
-    card.appendChild(gradeRow);
-
-    /* resposta (only when there are no subquestões — they carry their own) */
+    // resposta (hidden when there are subquestões — they carry their own)
     var respBlock = el("div", "review-field hidden");
     function renderRespBlock() {
       respBlock.innerHTML = "";
       respBlock.classList.toggle("hidden", hasSubs(q));
       if (hasSubs(q)) return;
-      respBlock.appendChild(el("span", "review-field-label", "Resposta / gabarito"));
+      respBlock.appendChild(
+        el("span", "review-field-label", "Resposta / gabarito")
+      );
       respBlock.appendChild(
         markdownField(q.resposta || "", {
           placeholder: "Resolução esperada (opcional)",
           rows: 3,
           onChange: function (v) {
             q.resposta = v.trim() ? v : null;
-            tag.lastChild && (tag.childNodes[tag.childNodes.length - 1].textContent =
-              q.resposta ? "com gabarito" : "sem gabarito");
+            renderHeadMeta();
           },
         })
       );
     }
     renderRespBlock();
-    card.appendChild(respBlock);
+    grid.appendChild(respBlock);
+    body.appendChild(grid);
 
-    /* subquestões */
+    var subnote = el(
+      "div",
+      "review-grade-note hidden",
+      "Pontuação e nota são a soma das subquestões."
+    );
+    body.appendChild(subnote);
+
     var subsWrap = el("div", "review-subs");
     function renderSubs() {
       subsWrap.innerHTML = "";
       q.subquestoes.forEach(function (sub, sidx) {
-        subsWrap.appendChild(subCard(q, sub, sidx, function () {
-          refreshBadges();
-          updateTotals();
-        }));
+        subsWrap.appendChild(
+          subCard(q, sub, sidx, function () {
+            renderHeadMeta();
+            updateTotals();
+          })
+        );
       });
       var addSub = el("button", "review-add-sub");
       addSub.type = "button";
@@ -945,24 +1006,60 @@
       addSub.addEventListener("click", function () {
         q.subquestoes.push(newSubquestao());
         renderSubs();
-        renderGradeRow();
         renderRespBlock();
-        refreshBadges();
+        renderHeadMeta();
         updateTotals();
       });
       subsWrap.appendChild(addSub);
     }
     renderSubs();
-    card.appendChild(subsWrap);
+    body.appendChild(subsWrap);
 
-    function refreshBadges() {
-      ptsBadge.textContent = fmtPts(effectivePontuacao(q)) + " pts";
+    card.appendChild(body);
+
+    /* ── state ── */
+    function renderPreview() {
+      var text = firstLine(q.enunciado);
+      preview.textContent = text || "Sem enunciado";
+      preview.classList.toggle("review-q-preview-empty", !text);
     }
-    // expose so subCard deletion can re-render the parent grade row / resp block
-    card._renderGradeRow = renderGradeRow;
+
+    function renderHeadMeta() {
+      var subs = hasSubs(q);
+      var open = card.classList.contains("is-open");
+
+      // gabarito check — only when no subs
+      tag.classList.toggle("hidden", subs || !q.resposta);
+
+      // badge always reflects effective pts / nota (sum when subs)
+      var nota = effectiveNota(q);
+      badge.textContent =
+        fmtPts(effectivePontuacao(q)) +
+        " / " +
+        (nota == null ? "—" : fmtPts(nota));
+
+      // inline inputs only when expanded AND no subs; badge otherwise
+      var showInputs = open && !subs;
+      if (showInputs) buildHeadGrades();
+      headGrades.classList.toggle("hidden", !showInputs);
+      badge.classList.toggle("hidden", showInputs);
+
+      // subnote only when subs
+      subnote.classList.toggle("hidden", !subs);
+    }
+
+    function toggleOpen() {
+      card.classList.toggle("is-open");
+      renderHeadMeta();
+    }
+
+    // expose for subCard add/delete to refresh parent head + resp + subs
+    card._renderHeadMeta = renderHeadMeta;
     card._renderRespBlock = renderRespBlock;
     card._renderSubs = renderSubs;
-    refreshBadges();
+
+    renderPreview();
+    renderHeadMeta();
 
     return card;
   }
@@ -1091,7 +1188,11 @@
     updateTotals();
     var cards = els.questions.querySelectorAll(".review-question-card");
     var last = cards[cards.length - 1];
-    if (last) last.scrollIntoView({ behavior: "smooth", block: "center" });
+    if (last) {
+      last.classList.add("is-open");
+      if (last._renderHeadMeta) last._renderHeadMeta();
+      last.scrollIntoView({ behavior: "smooth", block: "center" });
+    }
   }
 
   function updateTotals() {
