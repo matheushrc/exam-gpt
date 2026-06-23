@@ -311,9 +311,19 @@ app, split by concern under
   exists. This is the standard way to edit any LaTeX/Markdown text.
 - **Toggle switch** (`.toggle-switch` + `.toggle-knob`) — accessible
   `role="switch"`, `aria-checked`, `.checked` class drives the knob.
-- **Cards** — `--color-card` surface, hairline border, generous radius. Editable
-  question cards grow a **maroon left "spine" on `:focus-within`** (the signature
-  detail of the review screen — editing feels like marking up an exam).
+- **Cards** — `--color-card` surface, hairline border, generous radius.
+  Question/subquestion cards on the review screen are collapsible: a clickable
+  summary row (grip · positional index · enunciado preview · `pts`/`nota`
+  badge, or inline grade inputs when expanded · trash · caret) toggles a hidden
+  body holding a 2-column `enunciado | resposta` editor grid
+  (`.review-editor-grid`, stacking to one column under 640px). When a question
+  has subquestões, its body shows a subnote instead of a resposta editor and a
+  collapsible row per subquestão. The positional index (`1, 2, 3…` for
+  questions, `a, b, c…` for subs) is render-time/presentational only — it is
+  never persisted. Editable cards grow a **maroon left "spine" on
+  `:focus-within`** (now also triggered while expanded via `.is-open`) — the
+  signature detail of the review screen — editing feels like marking up an
+  exam.
 - **Chat bubbles** — `.chat-bubble.user` (accent fill, right-aligned) /
   `.assistant` (card, bordered) / `.loading` / `.error`.
 - **Loading** — `.dot-pulse` three-dot pulse in the accent color.

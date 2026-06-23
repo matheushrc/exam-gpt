@@ -10,4 +10,8 @@
   .grade-input {
     width: 100%;
   }
+
+  .review-editor-grid {
+    grid-template-columns: 1fr;
+  }
 }
