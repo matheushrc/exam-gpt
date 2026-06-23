@@ -146,6 +146,41 @@
   color: var(--color-text-muted);
 }
 
+/* Recuperação toggle switch. The `.toggle-switch` component is also styled in
+   chat's right-panel.css, but that sheet isn't loaded on the upload screen —
+   keep the upload page self-contained by defining it here too. */
+.review-rec-row .toggle-switch {
+  width: 46px;
+  height: 26px;
+  flex: none;
+  border: none;
+  border-radius: 13px;
+  cursor: pointer;
+  position: relative;
+  transition: background 0.2s;
+  background: var(--color-border);
+}
+
+.review-rec-row .toggle-switch.checked {
+  background: var(--color-accent);
+}
+
+.review-rec-row .toggle-knob {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+  transition: transform 0.2s;
+}
+
+.review-rec-row .toggle-switch.checked .toggle-knob {
+  transform: translateX(20px);
+}
+
 /* Review — questions */
 .review-questions-header {
   display: flex;
@@ -180,16 +215,6 @@
   display: flex;
   align-items: center;
   gap: 9px;
-}
-
-.review-question-num {
-  font-family: var(--font-serif);
-  font-weight: 600;
-  font-size: 13.5px;
-  color: var(--color-accent);
-  background: var(--color-accent-light);
-  border-radius: 7px;
-  padding: 3px 10px;
 }
 
 .review-question-pts {

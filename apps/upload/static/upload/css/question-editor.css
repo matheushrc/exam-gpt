@@ -129,27 +129,15 @@
   gap: 8px;
 }
 
-.review-sub-label {
-  width: 72px;
-  height: 34px;
-  border: 1px solid var(--color-border);
-  border-radius: 8px;
-  background: var(--color-card);
-  color: var(--color-accent);
-  font-family: var(--font-serif);
-  font-weight: 600;
-  font-size: 14px;
-  text-align: center;
-  outline: none;
-  transition: border-color var(--transition-fast);
-}
-
-.review-sub-label:focus {
-  border-color: var(--color-accent);
-}
-
-.review-sub-head .review-icon-btn {
+/* Push the trash+grip group to the right edge, adjacent, mirroring the
+   question header. Only the first icon gets the auto margin so the two icons
+   stay together instead of spreading apart. */
+.review-sub-head .review-icon-btn:first-child {
   margin-left: auto;
+}
+
+.review-sub-head .review-grip {
+  margin-left: 4px;
 }
 
 /* ── Add buttons ──────────────────────────────────────────────────────── */
