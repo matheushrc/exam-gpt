@@ -401,6 +401,11 @@
     var preview = el("div", "mdf-preview md-content");
 
     function autoResize() {
+      // Skip while the field sits inside a collapsed (display:none) card:
+      // scrollHeight is 0 there, which would pin the textarea to ~2px. The
+      // `rows` attribute governs the height until the field is visible and the
+      // user focuses/types it (see the focus handler below).
+      if (area.offsetParent === null) return;
       area.style.height = "auto";
       area.style.height = area.scrollHeight + 2 + "px";
     }
@@ -423,6 +428,10 @@
       autoResize();
       opts.onChange && opts.onChange(area.value);
     });
+    // Fit the height to existing content the first time the field is entered —
+    // it may have been built while hidden (collapsed card), where autoResize
+    // bails, so it still shows the `rows` default until now.
+    area.addEventListener("focus", autoResize);
     writeTab.addEventListener("click", function () {
       setMode("write");
     });
@@ -434,8 +443,9 @@
     wrap.appendChild(area);
     wrap.appendChild(preview);
 
-    // Start in preview when there's content to read, otherwise in write.
-    setMode(value && value.trim() ? "preview" : "write");
+    // Always start in write mode so enunciado/resposta fields open ready to
+    // edit; the user switches to "Visualizar" on demand.
+    setMode("write");
     return wrap;
   }
 
