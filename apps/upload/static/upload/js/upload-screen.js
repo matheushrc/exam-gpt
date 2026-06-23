@@ -507,8 +507,7 @@
     function computeTargetIndex(currentY) {
       var above = 0;
       siblingsByOrder.forEach(function (s) {
-        var mid = s.top + cardHeight / 2;
-        if (mid < currentY) above++;
+        if (s.mid < currentY) above++;
       });
       return above;
     }
@@ -529,7 +528,8 @@
           return node !== card;
         })
         .map(function (node) {
-          return { el: node, top: node.getBoundingClientRect().top };
+          var rect = node.getBoundingClientRect();
+          return { el: node, top: rect.top, mid: rect.top + rect.height / 2 };
         })
         .sort(function (a, b) {
           return a.top - b.top;
