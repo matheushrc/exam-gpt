@@ -14,6 +14,13 @@
     var saveSetting = window.PGShell.saveSetting;
     var springWidth = window.PGShell.springWidth;
 
+    // On mobile the panel becomes a full-screen overlay (responsive.css);
+    // default to collapsed there so the chat is visible on first load.
+    if (window.matchMedia("(max-width: 640px)").matches) {
+      panel.classList.add("collapsed");
+      toggle.classList.remove("active");
+    }
+
     var closeBtn = document.getElementById("right-panel-close");
     var groundingBtn = document.getElementById("setting-grounding");
     var groundStatusText = document.getElementById("ground-status-text");
