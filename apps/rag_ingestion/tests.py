@@ -52,14 +52,14 @@ class ChunkFormattingTests(SimpleTestCase):
     def test_build_chunk_includes_subquestions_and_answer(self):
         chunk = build_chunk(
             materia="Redes de Computadores",
-            numero=1,
+            ordem=1,
             enunciado="Explique roteamento.",
-            subquestoes=[{"label": "(a)", "enunciado": "Defina rota."}],
+            subquestoes=[{"enunciado": "Defina rota."}],
             resposta="Roteamento escolhe caminhos.",
         )
 
         self.assertIn("Redes de Computadores - Questão 1", chunk)
-        self.assertIn("(a) Defina rota.", chunk)
+        self.assertIn("Defina rota.", chunk)
         self.assertIn("Gabarito/Resposta esperada: Roteamento escolhe caminhos.", chunk)
 
 
@@ -89,7 +89,7 @@ class ProvaDeleteCleanupTests(TestCase):
     @patch("apps.rag_ingestion.signals.remove_turbo_ids")
     def test_delete_prova_removes_orphan_questions_and_chunks(self, remove_mock):
         questao = Questao.objects.create(
-            numero=1,
+            ordem=1,
             enunciado="Explique DNS.",
             subquestoes=[],
             resposta=None,
@@ -138,7 +138,7 @@ class ProvaQuestaoNovosCamposTests(TestCase):
         self.assertFalse(prova.recuperacao)
 
     def test_questao_nota_recebida_defaults_to_none(self):
-        questao = Questao.objects.create(numero=1, enunciado="X", pontuacao=2.0)
+        questao = Questao.objects.create(ordem=1, enunciado="X", pontuacao=2.0)
         self.assertIsNone(questao.nota_recebida)
 
     def test_ano_semestre_schema_validation(self):

@@ -33,7 +33,6 @@ class SearchViewTests(SimpleTestCase):
             (),
             {
                 "id": "abc123",
-                "numero": 1,
                 "enunciado": "Explique o TCP slow start.",
                 "subquestoes": [],
                 "resposta": "A janela de congestionamento cresce exponencialmente.",
@@ -55,7 +54,6 @@ class SearchViewTests(SimpleTestCase):
                     "score": 0.91,
                     "questao": {
                         "id": "abc123",
-                        "numero": 1,
                         "enunciado": "Explique o TCP slow start.",
                         "subquestoes": [],
                         "resposta": "A janela de congestionamento cresce exponencialmente.",
