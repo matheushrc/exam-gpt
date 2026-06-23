@@ -2,7 +2,7 @@
 Async exam extraction service.
 
 Called by:
-- The upload wizard view (real-time, single folder/file)
+- The SPA upload extraction endpoint (real-time, single folder/file)
 - The `extract_exams` management command (batch)
 """
 
@@ -60,7 +60,7 @@ async def extract_exam_from_content(
 
     Returns:
         ProvaComNome with all fields filled by the model.
-        nota_final, nota_recebida, recuperacao will be None/False -- user fills these in the wizard.
+        nota_final, nota_recebida, recuperacao will be None/False -- the user fills these in on the review screen.
     """
     key = api_key or os.environ.get("GOOGLE_API_KEY", "")
     if not key:
@@ -90,8 +90,8 @@ async def extract_exam_from_pdf(
     """
     Single entry point for "user uploaded a PDF of unknown kind". Runs
     `pdf_convert.convert_pdf()` to decide TEXT vs IMAGE, then delegates to
-    `extract_exam_from_content()`. This is what the upload wizard and the
-    `extract_exams` management command should call for PDF input.
+    `extract_exam_from_content()`. This is what the SPA upload endpoint and
+    the `extract_exams` management command should call for PDF input.
     """
     from apps.rag_ingestion.pdf_convert import convert_pdf
 
@@ -113,7 +113,7 @@ async def extract_exam_from_images(
     api_key: str | None = None,
 ) -> ProvaComNome:
     """Back-compat wrapper for callers that already have a flat list of image bytes
-    (e.g. a folder of photographed pages, or the wizard's camera-capture flow)."""
+    (e.g. a folder of photographed pages, or the camera-capture upload flow)."""
     return await extract_exam_from_content(
         images, "IMAGE", source_hint=source_hint, model_name=model_name, api_key=api_key
     )

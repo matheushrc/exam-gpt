@@ -119,15 +119,18 @@ def upsert_exam(data: dict[str, Any]) -> tuple[Prova, list[Questao], list[str]]:
     chunk_texts: list[str] = []
     for ordem, q_data in enumerate(data["questoes"], start=1):
         subquestoes = q_data.get("subquestoes") or []
+        # A question with subquestões carries no standalone answer/grade — the
+        # answer lives in the subquestões. Null those here so the persisted row
+        # and the embedded chunk text agree (no stale parent answer leaks into
+        # search-match text).
+        resposta = None if subquestoes else q_data.get("resposta")
+        nota_recebida = None if subquestoes else q_data.get("nota_recebida")
         defaults = {
             "subquestoes": subquestoes,
-            "resposta": q_data.get("resposta"),
+            "resposta": resposta,
             "pontuacao": q_data.get("pontuacao"),
-            "nota_recebida": q_data.get("nota_recebida"),
+            "nota_recebida": nota_recebida,
         }
-        if subquestoes:
-            defaults["resposta"] = None
-            defaults["nota_recebida"] = None
 
         questao, _ = Questao.objects.update_or_create(
             ordem=ordem,
@@ -140,8 +143,8 @@ def upsert_exam(data: dict[str, Any]) -> tuple[Prova, list[Questao], list[str]]:
                 materia=data["materia"],
                 ordem=ordem,
                 enunciado=q_data["enunciado"],
-                subquestoes=q_data.get("subquestoes"),
-                resposta=q_data.get("resposta"),
+                subquestoes=subquestoes,
+                resposta=resposta,
             )
         )
 

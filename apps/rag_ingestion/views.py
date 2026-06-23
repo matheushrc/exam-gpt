@@ -15,11 +15,11 @@ from apps.rag_ingestion.extract import extract_exam_from_images, extract_exam_fr
 
 
 class ProvaExtractAPIView(APIView):
-    """POST /api/provas/extract/ -- JSON counterpart of UploadView for SPA clients.
+    """POST /api/provas/extract/ -- extraction endpoint for the SPA upload flow.
 
-    Accepts the same inputs (multipart files or base64 camera images) and
-    returns the extracted Prova+Questões as JSON instead of redirecting into
-    the session-based wizard.
+    Accepts multipart files or base64 camera images and returns the extracted
+    Prova+Questões as JSON for the client-side review screen to edit before
+    saving via ProvaSaveAPIView.
     """
 
     def post(self, request):
