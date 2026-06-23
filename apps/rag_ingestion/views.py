@@ -69,7 +69,7 @@ class ProvaExtractAPIView(APIView):
 
 class ProvaSaveAPIView(APIView):
     """POST /api/provas/ -- persist a (possibly user-edited) Prova+Questões payload
-    and rebuild the vector index, mirroring ReviewView.post() for SPA clients.
+    and rebuild the vector index. This is the SPA upload flow's save step.
     """
 
     def post(self, request):
