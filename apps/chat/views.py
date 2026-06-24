@@ -159,10 +159,19 @@ async def _generate_answer(
     )
 
 
+def _get_similarity_tier(score: float) -> str:
+    if score >= chat_settings.SIMILARITY_THRESHOLD_HIGH:
+        return "high"
+    elif score >= chat_settings.SIMILARITY_THRESHOLD_MEDIUM:
+        return "medium"
+    return "low"
+
+
 def _serialize_sources(collected: list) -> list[dict]:
     return [
         {
             "score": score,
+            "similarity_tier": _get_similarity_tier(score),
             "questao": {
                 "id": str(questao.id),
                 "ordem": questao.ordem,

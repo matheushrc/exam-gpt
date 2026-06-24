@@ -44,23 +44,33 @@ html[data-variant="manuscrito"][data-theme="light"] {
   --color-user-text: #fdf3ee;
   --color-error: #b3261e;
   --color-success: #2f6d3c;
+
+  --score-high-color: #1a6e6e; --score-high-bg: #d8f0f0; --score-high-bar: #1a6e6e;
+  --score-mid-color:  #7a5010; --score-mid-bg:  #f8e8cc; --score-mid-bar:  #a87020;
+  --score-low-color:  #903015; --score-low-bg:  #fce0d4; --score-low-bar:  #b84020;
 }
 
 html[data-variant="manuscrito"][data-theme="dark"] {
-  --color-bg: #1b1713;
-  --color-surface: #211c16;
-  --color-card: #272018;
-  --color-border: #3a3026;
-  --color-hover: #272018;
+  /* Complete block mirroring tokens.css with lightened colors */
+  --color-bg: #231e1a;
+  --color-surface: #2b2520;
+  --color-card: #332c26;
+  --color-border: #473e35;
+  --color-hover: #332c26;
   --color-text: #ece2d3;
   --color-text-muted: #a89379;
   --color-accent: #cf8a6f;
-  --color-accent-light: #352019;
-  --color-on-accent: #1b1713;
+  --color-accent-light: #422b22;
+  --color-on-accent: #231e1a;
   --color-user-bg: #cf8a6f;
-  --color-user-text: #1b1713;
+  --color-user-text: #231e1a;
   --color-error: #e0796a;
   --color-success: #7fb88a;
+
+  /* Proposed score palette - backgrounds raised above card (#332c26) */
+  --score-high-color: #a8e8e8; --score-high-bg: #2c4444; --score-high-bar: #4ab0b0;
+  --score-mid-color:  #fce4a4; --score-mid-bg:  #443822; --score-mid-bar:  #c89030;
+  --score-low-color:  #fcd3be; --score-low-bg:  #493126; --score-low-bar:  #c86040;
 }
 
 /* Periódico */
@@ -84,23 +94,33 @@ html[data-variant="periodico"][data-theme="light"] {
   --color-user-text: #fbfcff;
   --color-error: #b3261e;
   --color-success: #2f6d3c;
+
+  --score-high-color: #2e6e3e; --score-high-bg: #dcf0e2; --score-high-bar: #2e6e3e;
+  --score-mid-color:  #806010; --score-mid-bg:  #f6e8c4; --score-mid-bar:  #a88020;
+  --score-low-color:  #9e1c1c; --score-low-bg:  #fce0e0; --score-low-bar:  #c03030;
 }
 
 html[data-variant="periodico"][data-theme="dark"] {
-  --color-bg: #13161c;
-  --color-surface: #181c23;
-  --color-card: #1e232c;
-  --color-border: #2d323d;
-  --color-hover: #1e232c;
+  /* Complete block mirroring tokens.css with lightened colors */
+  --color-bg: #1d212a;
+  --color-surface: #242934;
+  --color-card: #2b313e;
+  --color-border: #3c4456;
+  --color-hover: #2b313e;
   --color-text: #e7e9ee;
   --color-text-muted: #99a0ac;
   --color-accent: #8ba6e0;
-  --color-accent-light: #222a3a;
-  --color-on-accent: #0f1218;
+  --color-accent-light: #343f54;
+  --color-on-accent: #1d212a;
   --color-user-bg: #8ba6e0;
-  --color-user-text: #0f1218;
+  --color-user-text: #1d212a;
   --color-error: #e0796a;
   --color-success: #7fb88a;
+
+  /* Proposed score palette - backgrounds raised above card (#2b313e) */
+  --score-high-color: #b8f0c4; --score-high-bg: #324838; --score-high-bar: #50a868;
+  --score-mid-color:  #fce4a4; --score-mid-bg:  #4e4028; --score-mid-bar:  #c09020;
+  --score-low-color:  #fcb8b8; --score-low-bg:  #4c2828; --score-low-bar:  #c04848;
 }
 
 /* Acadêmico */
@@ -124,23 +144,33 @@ html[data-variant="academico"][data-theme="light"] {
   --color-user-text: #f7fbf8;
   --color-error: #b3261e;
   --color-success: #2f6d3c;
+
+  --score-high-color: #2a3e9a; --score-high-bg: #dce2f8; --score-high-bar: #2a3e9a;
+  --score-mid-color:  #7a5010; --score-mid-bg:  #f8e8cc; --score-mid-bar:  #a87020;
+  --score-low-color:  #a82818; --score-low-bg:  #fce0da; --score-low-bar:  #c84020;
 }
 
 html[data-variant="academico"][data-theme="dark"] {
-  --color-bg: #121512;
-  --color-surface: #171b16;
-  --color-card: #1c211b;
-  --color-border: #2b302a;
-  --color-hover: #1c211b;
+  /* Complete block mirroring tokens.css with lightened colors */
+  --color-bg: #1a1f1a;
+  --color-surface: #212721;
+  --color-card: #282f28;
+  --color-border: #394239;
+  --color-hover: #282f28;
   --color-text: #e6e9e1;
   --color-text-muted: #98a092;
   --color-accent: #74b095;
-  --color-accent-light: #1e2a23;
-  --color-on-accent: #0f120f;
+  --color-accent-light: #283a30;
+  --color-on-accent: #1a1f1a;
   --color-user-bg: #74b095;
-  --color-user-text: #0f120f;
+  --color-user-text: #1a1f1a;
   --color-error: #e0796a;
   --color-success: #7fb88a;
+
+  /* Proposed score palette - backgrounds raised above card (#282f28) */
+  --score-high-color: #c0d0ff; --score-high-bg: #2a3448; --score-high-bar: #6080d8;
+  --score-mid-color:  #fce4a4; --score-mid-bg:  #443822; --score-mid-bar:  #c09020;
+  --score-low-color:  #fcd3c4; --score-low-bg:  #492f27; --score-low-bar:  #c05040;
 }
 
 :root {
