@@ -26,6 +26,10 @@
   transform: translateX(0);
 }
 
+.right-panel.is-compact:not(.mobile-open) {
+  transform: translateX(100%);
+}
+
 .right-panel.viewport-switching,
 .right-panel.viewport-switching * {
   transition: none !important;
@@ -33,6 +37,7 @@
 
 .right-panel.collapsed {
   width: 0;
+  border-left-width: 0;
   border-left-color: transparent;
 }
 

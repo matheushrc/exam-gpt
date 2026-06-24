@@ -18,9 +18,9 @@
   left: 0;
   height: 100vh;
   width: min(var(--sidebar-width), calc(100vw - 48px));
+  z-index: 50;
   transform: translateX(-100%);
   transition: transform var(--transition-med);
-  z-index: 50;
 }
 
 .sidebar.is-compact.mobile-open {

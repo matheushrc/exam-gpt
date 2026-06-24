@@ -48,10 +48,12 @@
     var stiffness = opts.stiffness || 500;
     var damping = opts.damping || 35;
     var precision = opts.precision || 0.4;
+    var maxDuration = opts.maxDuration || 900;
     if (el._springRaf) cancelAnimationFrame(el._springRaf);
 
     var current = el.getBoundingClientRect().width;
     var velocity = 0;
+    var start = performance.now();
     var last = performance.now();
 
     function step(now) {
@@ -62,7 +64,10 @@
       velocity += acceleration * dt;
       current += velocity * dt;
 
-      if (Math.abs(displacement) < precision && Math.abs(velocity) < precision) {
+      if (
+        now - start >= maxDuration ||
+        (Math.abs(displacement) < precision && Math.abs(velocity) < precision)
+      ) {
         el.style.width = "";
         el._springRaf = null;
         return;

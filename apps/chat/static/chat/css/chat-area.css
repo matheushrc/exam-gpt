@@ -9,22 +9,28 @@
 }
 
 .chat-header {
-  height: 64px;
+  height: 0;
   flex: none;
   display: flex;
   align-items: center;
   gap: 16px;
-  padding: 0 26px;
-  border-bottom: 1px solid var(--color-border);
-  background: color-mix(in srgb, var(--color-bg) 82%, transparent);
-  backdrop-filter: blur(8px);
-  position: relative;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  backdrop-filter: none;
+  position: absolute;
+  inset: 0 0 auto;
+  z-index: 20;
+  pointer-events: none;
 }
 
 .right-toggle {
-  margin-right: 0;
+  top: 16px;
   position: absolute;
-  left: 26px;
+  right: 26px;
+  left: auto;
+  z-index: 21;
+  pointer-events: auto;
 }
 
 .right-toggle.active {
@@ -33,7 +39,11 @@
 }
 
 .sidebar-mobile-toggle {
-  margin-left: auto;
+  position: absolute;
+  top: 16px;
+  left: 12px;
+  z-index: 21;
+  pointer-events: auto;
 }
 
 .chat-body {

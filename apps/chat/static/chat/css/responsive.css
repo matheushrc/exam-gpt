@@ -1,37 +1,15 @@
 /* Mobile chat layout */
 @media (max-width: 640px) {
-  .chat-layout {
-    flex-direction: row;
-  }
-
-  .sidebar {
-    display: flex;
-  }
-
-  .sidebar-nav {
-    flex-direction: column;
-    width: 100%;
-    justify-content: flex-start;
-  }
-
-  .sidebar-item {
-    flex-direction: row;
-    flex: none;
-    text-align: left;
-    padding: 0 12px;
-  }
-
-  .sidebar-label {
-    font-size: 14px;
-  }
-
   .chat-main {
-    order: 0;
     width: 100%;
   }
 
   .sidebar-mobile-toggle {
     display: inline-flex;
+  }
+
+  .right-toggle {
+    right: 12px;
   }
 
   .sidebar.is-compact .sidebar-mobile-close {
@@ -43,24 +21,38 @@
     display: none;
   }
 
-  .right-panel {
+  .sidebar.is-compact .sidebar-nav {
+    flex-direction: column;
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .sidebar.is-compact .sidebar-item {
+    flex-direction: row;
+    flex: none;
+    text-align: left;
+    padding: 0 12px;
+  }
+
+  .sidebar.is-compact .sidebar-label {
+    font-size: 14px;
+  }
+
+  .right-panel.is-compact {
     position: fixed;
     inset: 0;
-    /* Anchor to the right edge so the width-spring open/close reveals the
-       panel from the right (a right-side drawer) instead of growing from
-       the left edge. */
     left: auto;
     z-index: 40;
     width: 100%;
   }
 
-  .right-panel.collapsed {
-    width: 0;
+  .right-panel.is-compact.collapsed {
+    width: 100%;
     pointer-events: none;
   }
 
-  .right-panel-header,
-  .right-panel-body {
+  .right-panel.is-compact .right-panel-header,
+  .right-panel.is-compact .right-panel-body {
     width: 100%;
   }
 
