@@ -8,6 +8,23 @@
     display: flex;
   }
 
+  .sidebar-nav {
+    flex-direction: column;
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .sidebar-item {
+    flex-direction: row;
+    flex: none;
+    text-align: left;
+    padding: 0 12px;
+  }
+
+  .sidebar-label {
+    font-size: 14px;
+  }
+
   .chat-main {
     order: 0;
     width: 100%;
