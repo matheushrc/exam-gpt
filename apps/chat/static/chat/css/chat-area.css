@@ -18,25 +18,13 @@
   border-bottom: 1px solid var(--color-border);
   background: color-mix(in srgb, var(--color-bg) 82%, transparent);
   backdrop-filter: blur(8px);
+  position: relative;
 }
 
-.chat-header-title {
-  display: flex;
-  flex-direction: column;
-  margin-right: auto;
-  min-width: 0;
-}
-
-#chat-title {
-  font-family: var(--font-serif);
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--color-text);
-}
-
-.chat-header-sub {
-  font-size: 11px;
-  color: var(--color-text-muted);
+.right-toggle {
+  margin-right: 0;
+  position: absolute;
+  left: 26px;
 }
 
 .right-toggle.active {
@@ -44,8 +32,8 @@
   color: var(--color-accent);
 }
 
-.right-toggle {
-  margin-right: -8px;
+.sidebar-mobile-toggle {
+  margin-left: auto;
 }
 
 .chat-body {
@@ -68,7 +56,6 @@
 }
 
 .chat-inner {
-  max-width: 780px;
   width: 100%;
   margin: 0 auto;
 }
