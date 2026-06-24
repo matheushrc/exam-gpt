@@ -17,6 +17,7 @@
     <link rel="stylesheet" href="{% static 'chat/css/responsive.css' %}">
 {% endblock extra_css %}
 {% block content %}
+    {% include "chat/partials/_reference_templates.html" %}
     {% include "partials/_sidebar.html" with active_view="chat" %}
     {% include "partials/_user_menu.html" %}
     {% include "partials/_settings_modal.html" %}
@@ -193,5 +194,6 @@
 {% endblock content %}
 {% block extra_js %}
     <script src="{% static 'chat/js/right-panel.js' %}" defer></script>
+    <script src="{% static 'chat/js/references.js' %}" defer></script>
     <script src="{% static 'chat/js/transcript.js' %}" defer></script>
 {% endblock extra_js %}

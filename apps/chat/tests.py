@@ -227,3 +227,34 @@ class ChatShellResponsiveTests(TestCase):
         html = response.content.decode("utf-8")
         self.assertNotIn('id="right-panel-close"', html)
 
+    def test_references_js_exposes_build_sources_section(self):
+        references = Path("apps/chat/static/chat/js/references.js").read_text()
+        self.assertIn("buildSourcesSection", references)
+        self.assertIn("window.PGReferences", references)
+
+    def test_transcript_js_delegates_card_building_to_references(self):
+        transcript = Path("apps/chat/static/chat/js/transcript.js").read_text()
+        self.assertNotIn("buildQuestaoCard", transcript)
+        self.assertIn("PGReferences.buildSourcesSection", transcript)
+
+    def test_serialize_sources_includes_similarity_tier(self):
+        from apps.chat.views import _serialize_sources
+        from unittest.mock import Mock
+        questao = Mock()
+        questao.id = "60a8f8888888888888888888"
+        questao.ordem = 1
+        questao.enunciado = "Teste"
+        questao.subquestoes = []
+        questao.resposta = "Teste resposta"
+        questao.pontuacao = 1.0
+        questao.nota_recebida = 1.0
+        questao.provas_resolved = []
+        
+        res_high = _serialize_sources([(0.90, questao)])
+        res_medium = _serialize_sources([(0.75, questao)])
+        res_low = _serialize_sources([(0.50, questao)])
+        
+        self.assertEqual(res_high[0]["similarity_tier"], "high")
+        self.assertEqual(res_medium[0]["similarity_tier"], "medium")
+        self.assertEqual(res_low[0]["similarity_tier"], "low")
+

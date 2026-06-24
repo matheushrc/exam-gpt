@@ -69,65 +69,6 @@
     return bubble;
   }
 
-  function buildQuestaoCard(source) {
-    var questao = source.questao || {};
-    var provas = source.provas || [];
-    var prova = provas[0] || {};
-
-    var card = document.createElement("div");
-    card.className = "questao-card";
-
-    var header = document.createElement("div");
-    header.className = "questao-meta";
-
-    var scoreBadge = document.createElement("span");
-    scoreBadge.className = "score-badge";
-    scoreBadge.textContent =
-      typeof source.score === "number" ? source.score.toFixed(3) : "";
-    header.appendChild(scoreBadge);
-
-    var materiaInfo = document.createElement("span");
-    materiaInfo.className = "materia-info";
-    materiaInfo.textContent =
-      (prova.materia || "Matéria") + " · Questão " + (questao.ordem || "?");
-    header.appendChild(materiaInfo);
-
-    card.appendChild(header);
-
-    if (prova.professor || prova.ano_semestre || prova.numero_avaliacao) {
-      var profLine = document.createElement("div");
-      profLine.className = "questao-prof";
-      var parts = [];
-      if (prova.professor) parts.push(prova.professor);
-      if (prova.ano_semestre) parts.push(prova.ano_semestre);
-      if (prova.numero_avaliacao) {
-        parts.push("P" + prova.numero_avaliacao);
-      }
-      profLine.textContent = parts.join(" · ");
-      card.appendChild(profLine);
-    }
-
-    var enunciado = document.createElement("div");
-    enunciado.className = "md-content";
-    renderMarkdownInto(enunciado, questao.enunciado);
-    card.appendChild(enunciado);
-
-    if (questao.resposta) {
-      var details = document.createElement("details");
-      details.className = "resposta-toggle";
-      var summary = document.createElement("summary");
-      summary.textContent = "Ver resolução";
-      details.appendChild(summary);
-      var respostaContent = document.createElement("div");
-      respostaContent.className = "md-content";
-      renderMarkdownInto(respostaContent, questao.resposta);
-      details.appendChild(respostaContent);
-      card.appendChild(details);
-    }
-
-    return card;
-  }
-
   function appendAssistantBubble(answer, sources) {
     var bubble = startAssistantBubble();
     renderMarkdownInto(bubble._content, answer);
@@ -151,21 +92,9 @@
   }
 
   function finishAssistantBubble(bubble, sources) {
-    if (sources && sources.length) {
-      var sourcesSection = document.createElement("details");
-      sourcesSection.className = "sources-section";
-
-      var summary = document.createElement("summary");
-      summary.innerHTML =
-        '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>' +
-        "Fontes citadas (" + sources.length + ")";
-      sourcesSection.appendChild(summary);
-
-      sources.forEach(function (source) {
-        sourcesSection.appendChild(buildQuestaoCard(source));
-      });
-
-      bubble.appendChild(sourcesSection);
+    var section = window.PGReferences.buildSourcesSection(sources, renderMarkdownInto);
+    if (section) {
+      bubble.appendChild(section);
     }
     scrollToBottom();
   }
