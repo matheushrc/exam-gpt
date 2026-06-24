@@ -5,16 +5,25 @@
   }
 
   .sidebar {
-    display: none;
-  }
-
-  .sidebar-footer {
-    display: none;
+    display: flex;
   }
 
   .chat-main {
     order: 0;
     width: 100%;
+  }
+
+  .sidebar-mobile-toggle {
+    display: inline-flex;
+  }
+
+  .sidebar.is-compact .sidebar-mobile-close {
+    display: flex;
+  }
+
+  .sidebar.is-compact #sidebar-toggle,
+  .sidebar.is-compact .sidebar-collapsed-logo {
+    display: none;
   }
 
   .right-panel {

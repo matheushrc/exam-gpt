@@ -198,3 +198,15 @@ class ChatMessageViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertEqual(response.data["sources"], [])
         mock_search.assert_not_called()
+
+
+class ChatShellResponsiveTests(TestCase):
+    def test_chat_page_renders_mobile_sidebar_and_panel_hooks(self):
+        response = self.client.get("/")
+        html = response.content.decode("utf-8")
+
+        self.assertIn('id="sidebar-mobile-toggle"', html)
+        self.assertIn('aria-label="Abrir menu"', html)
+        self.assertIn('id="sidebar-mobile-close"', html)
+        self.assertIn('aria-label="Fechar menu"', html)
+        self.assertIn('aria-controls="sidebar"', html)
