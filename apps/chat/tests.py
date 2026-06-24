@@ -221,3 +221,9 @@ class ChatShellResponsiveTests(TestCase):
         self.assertNotIn("function setChatHeader()", transcript)
         self.assertNotIn("chat-title", transcript)
         self.assertNotIn("chat-subtitle", transcript)
+
+    def test_right_panel_close_button_is_removed(self):
+        response = self.client.get("/")
+        html = response.content.decode("utf-8")
+        self.assertNotIn('id="right-panel-close"', html)
+

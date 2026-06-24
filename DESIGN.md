@@ -246,7 +246,7 @@ Non-color tokens (variant-independent), from `tokens.css`:
   `margin: auto` against the live animated box, or it reflows/drifts mid-fade
   instead of just fading in place (see §11).
 - **Spacing:** ad-hoc rem/px per component; content columns cap at ~740px
-  (`.upload-inner`) for readability.
+  (`.upload-inner`) or ~820px (`.chat-inner`) for readability.
 
 ---
 
@@ -264,7 +264,7 @@ partials in `templates/partials/` and the shared shell scripts
 │   76px     │  │ chat-header (title + subtitle)        ││
 │   collapsed)  ├───────────────────────────────────────┤│
 │            │  │ chat-body › chat-column › chat-scroll  ││  ← inner scroll
-│  brand     │  │   (page content, max ~740px column)   ││
+│  brand     │  │   (page content, max ~820px column)   ││
 │  nav       │  ├───────────────────────────────────────┤│
 │  history   │  │ footer (sticky actions)               ││
 │  settings  │  └───────────────────────────────────────┘│

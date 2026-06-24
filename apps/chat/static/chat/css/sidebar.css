@@ -50,7 +50,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 12px 0 16px;
+  padding: 0 12px 0 21px;
   opacity: 1;
   transition: opacity var(--transition-fast);
 }
@@ -130,15 +130,15 @@
 
 .sidebar-collapsed-logo {
   position: absolute;
-  top: 11px;
+  top: 15px;
   /* Centered against the static collapsed width rather than `inset: 0` +
      `margin: auto` -- the auto-margin version recalculates against the
      sidebar's live animated width, so the button visibly drifts sideways
      while it's mid-fade. */
-  left: calc((var(--sidebar-collapsed-width) - 42px) / 2);
-  width: 42px;
-  height: 42px;
-  border-radius: 11px;
+  left: 21px;
+  width: 34px;
+  height: 34px;
+  border-radius: 9px;
   background: var(--color-accent);
   color: var(--color-on-accent);
   border: 1px solid transparent;
@@ -189,7 +189,7 @@
   gap: 11px;
   width: 100%;
   height: 40px;
-  padding: 0 12px;
+  padding: 0 15px;
   border-radius: 10px;
   color: var(--color-text);
   text-decoration: none;
@@ -221,7 +221,7 @@
 }
 
 .sidebar.collapsed .sidebar-item {
-  height: 44px;
+  height: 40px;
   padding: 0 15px;
 }
 
@@ -310,7 +310,7 @@
 
 .sidebar-footer {
   border-top: 1px solid var(--color-border);
-  padding: 12px;
+  padding: 12px 12px 12px 22px;
   display: flex;
   align-items: center;
   gap: 11px;

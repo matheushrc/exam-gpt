@@ -140,13 +140,6 @@
     var bubble = document.createElement("div");
     bubble.className = "chat-bubble assistant";
 
-    var header = document.createElement("div");
-    header.className = "assistant-header";
-    header.innerHTML =
-      '<div class="assistant-avatar">EG</div>' +
-      '<span class="assistant-label">Exam GPT responde</span>';
-    bubble.appendChild(header);
-
     var content = document.createElement("div");
     content.className = "md-content";
     bubble.appendChild(content);
