@@ -210,3 +210,14 @@ class ChatShellResponsiveTests(TestCase):
         self.assertIn('id="sidebar-mobile-close"', html)
         self.assertIn('aria-label="Fechar menu"', html)
         self.assertIn('aria-controls="sidebar"', html)
+
+    def test_transcript_script_treats_chat_header_as_optional(self):
+        response = self.client.get("/")
+        html = response.content.decode("utf-8")
+        transcript = Path("apps/chat/static/chat/js/transcript.js").read_text()
+
+        self.assertNotIn('id="chat-title"', html)
+        self.assertNotIn('id="chat-subtitle"', html)
+        self.assertNotIn("function setChatHeader()", transcript)
+        self.assertNotIn("chat-title", transcript)
+        self.assertNotIn("chat-subtitle", transcript)

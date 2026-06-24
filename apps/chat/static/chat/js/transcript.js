@@ -25,18 +25,6 @@
     }
   }
 
-  function setChatHeader() {
-    var title = document.getElementById("chat-title");
-    var subtitle = document.getElementById("chat-subtitle");
-    var count = document.querySelectorAll("#chat-messages .chat-bubble.user").length;
-    if (count === 0) {
-      title.textContent = "Nova conversa";
-      subtitle.textContent = "Banco de provas · busca semântica";
-    } else {
-      subtitle.textContent = count + " pergunta(s) nesta sessão";
-    }
-  }
-
   function renderMarkdownInto(el, source) {
     el.innerHTML = marked.parse(source || "");
     if (typeof renderMathInElement === "function") {
@@ -55,7 +43,6 @@
     bubble.className = "chat-bubble user";
     bubble.textContent = text;
     container.appendChild(bubble);
-    setChatHeader();
     scrollToBottom();
     return bubble;
   }
