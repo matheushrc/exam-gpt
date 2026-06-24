@@ -1,0 +1,57 @@
+{% load static %}
+{# Hidden HTML templates for RAG reference card rendering (cloned by references.js). #}
+<template id="pg-sources-section-tpl">
+    <details class="sources-section">
+        <summary class="sources-summary">
+            <svg class="sources-chevron"
+                 width="13"
+                 height="13"
+                 viewBox="0 0 24 24"
+                 fill="none"
+                 stroke="currentColor"
+                 stroke-width="2.5"
+                 stroke-linecap="round"
+                 stroke-linejoin="round">
+                <path d="M6 9l6 6 6-6" />
+            </svg>
+            <span class="sources-label">Fontes citadas</span>
+            <span class="sources-count"></span>
+        </summary>
+        <div class="sources-list"></div>
+    </details>
+</template>
+<template id="pg-questao-card-tpl">
+    <div class="questao-card">
+        <div class="card-accent-bar"></div>
+        <div class="card-body">
+            <div class="questao-meta">
+                <span class="score-badge">
+                    <span class="score-dot"></span>
+                    <span class="score-value"></span>
+                </span>
+                <span class="materia-chip"></span>
+                <span class="ordem-chip"></span>
+            </div>
+            <div class="questao-meta-row2"></div>
+            <div class="md-content enunciado-content"></div>
+            <div class="card-divider"></div>
+            <details class="resposta-toggle">
+                <summary class="resposta-summary">
+                    <svg class="resposta-chevron"
+                         width="12"
+                         height="12"
+                         viewBox="0 0 24 24"
+                         fill="none"
+                         stroke="currentColor"
+                         stroke-width="2.5"
+                         stroke-linecap="round"
+                         stroke-linejoin="round">
+                        <path d="M6 9l6 6 6-6" />
+                    </svg>
+                    Ver resolução
+                </summary>
+                <div class="md-content resposta-content"></div>
+            </details>
+        </div>
+    </div>
+</template>
