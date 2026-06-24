@@ -278,9 +278,10 @@ partials in `templates/partials/` and the shared shell scripts
   `overflow: hidden`).
 - Content scrolls in `.chat-scroll` (an **inner** scroll container), not the
   window — keep this in mind when scripting scroll/scroll-into-view.
-- **Mobile (`max-width: 640px`):** the chat page hides the shared sidebar and
-  keeps the chat surface full width; the right-hand chat settings panel becomes
-  a full-screen overlay. Upload-page metadata grids collapse to one column (see
+- **Mobile (`max-width: 640px`):** the chat page keeps a compact open button for
+  the left sidebar, renders the sidebar as a left drawer/dialog when opened,
+  and keeps the right-hand settings panel collapsed until explicitly opened.
+  Upload-page metadata grids collapse to one column (see
   `apps/chat/static/chat/css/responsive.css` and
   `apps/upload/static/upload/css/responsive.css` media queries).
 

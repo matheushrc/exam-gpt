@@ -14,9 +14,6 @@
     var saveSetting = window.PGShell.saveSetting;
     var springWidth = window.PGShell.springWidth;
 
-    // The mobile default-collapsed state is applied before first paint by an
-    // inline script in chat.html; deferring it here flashes the panel open.
-
     var closeBtn = document.getElementById("right-panel-close");
     var groundingBtn = document.getElementById("setting-grounding");
     var groundStatusText = document.getElementById("ground-status-text");
@@ -48,17 +45,20 @@
     maxTokensInput.value = settings.maxTokens;
     renderGrounding();
 
-    // On mobile the panel is a full-screen overlay that slides in via a CSS
-    // transform (responsive.css) -- just toggle the class there. On desktop it
-    // is an inline column whose width animates with the spring; pin the current
-    // width inline before flipping the class, otherwise the CSS width rule snaps
-    // instantly and the spring starts from the target width.
-    function isMobile() {
-      return window.matchMedia("(max-width: 640px)").matches;
-    }
-    function collapsePanel() {
+    var desktopWasCollapsed = panel.classList.contains("collapsed");
+
+    // On mobile the panel is a full-screen overlay controlled by CSS width. On
+    // desktop it is an inline column whose width animates with the spring; pin
+    // the current width inline before flipping the class for user-triggered
+    // changes so the spring starts from the visible width.
+    function collapsePanel(skipSpring) {
       toggle.classList.remove("active");
-      if (isMobile()) {
+      if (window.PGShell.isCompactViewport()) {
+        panel.classList.add("collapsed");
+        return;
+      }
+      if (skipSpring) {
+        panel.style.width = "";
         panel.classList.add("collapsed");
         return;
       }
@@ -66,9 +66,14 @@
       panel.classList.add("collapsed");
       springWidth(panel, 0);
     }
-    function expandPanel() {
+    function expandPanel(skipSpring) {
       toggle.classList.add("active");
-      if (isMobile()) {
+      if (window.PGShell.isCompactViewport()) {
+        panel.classList.remove("collapsed");
+        return;
+      }
+      if (skipSpring) {
+        panel.style.width = "";
         panel.classList.remove("collapsed");
         return;
       }
@@ -77,6 +82,16 @@
       var target = getComputedStyle(panel).getPropertyValue("--right-panel-width");
       springWidth(panel, parseFloat(target));
     }
+    window.PGShell.onViewportChange(function (isCompact) {
+      if (isCompact) {
+        desktopWasCollapsed = panel.classList.contains("collapsed");
+        collapsePanel(true);
+      } else if (desktopWasCollapsed) {
+        collapsePanel(true);
+      } else {
+        expandPanel(true);
+      }
+    });
     toggle.addEventListener("click", function () {
       if (panel.classList.contains("collapsed")) {
         expandPanel();

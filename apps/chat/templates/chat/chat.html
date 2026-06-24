@@ -206,14 +206,6 @@
                     </div>
                 </div>
             </aside>
-            {# Collapse the settings panel before first paint on mobile, where #}
-            {# responsive.css turns it into a full-screen overlay. Doing this in #}
-            {# the deferred right-panel.js instead flashes the panel open first. #}
-            <script>
-                if (window.matchMedia("(max-width: 640px)").matches) {
-                    document.getElementById("right-panel").classList.add("collapsed");
-                }
-            </script>
         </div>
     </main>
 {% endblock content %}

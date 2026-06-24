@@ -37,6 +37,11 @@
     width: 100%;
   }
 
+  .right-panel.collapsed {
+    width: 0;
+    pointer-events: none;
+  }
+
   .right-panel-header,
   .right-panel-body {
     width: 100%;
