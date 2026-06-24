@@ -44,6 +44,10 @@
   color: var(--color-accent);
 }
 
+.right-toggle {
+  margin-right: -8px;
+}
+
 .chat-body {
   flex: 1;
   display: flex;

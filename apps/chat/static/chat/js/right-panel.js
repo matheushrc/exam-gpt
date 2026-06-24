@@ -28,7 +28,6 @@
     var temperatureInput = document.getElementById("setting-temperature");
     var temperatureValue = document.getElementById("temperature-value");
     var maxTokensInput = document.getElementById("setting-max-tokens");
-
     var settings = loadSettings();
 
     function renderGrounding() {
@@ -49,26 +48,34 @@
     maxTokensInput.value = settings.maxTokens;
     renderGrounding();
 
-    // Pin the current width inline before flipping the class -- otherwise
-    // the CSS width rule snaps instantly and the spring starts from the
-    // target width instead of animating to it.
+    // On mobile the panel is a full-screen overlay that slides in via a CSS
+    // transform (responsive.css) -- just toggle the class there. On desktop it
+    // is an inline column whose width animates with the spring; pin the current
+    // width inline before flipping the class, otherwise the CSS width rule snaps
+    // instantly and the spring starts from the target width.
+    function isMobile() {
+      return window.matchMedia("(max-width: 640px)").matches;
+    }
     function collapsePanel() {
+      toggle.classList.remove("active");
+      if (isMobile()) {
+        panel.classList.add("collapsed");
+        return;
+      }
       panel.style.width = panel.getBoundingClientRect().width + "px";
       panel.classList.add("collapsed");
-      toggle.classList.remove("active");
       springWidth(panel, 0);
     }
     function expandPanel() {
+      toggle.classList.add("active");
+      if (isMobile()) {
+        panel.classList.remove("collapsed");
+        return;
+      }
       panel.style.width = panel.getBoundingClientRect().width + "px";
       panel.classList.remove("collapsed");
-      toggle.classList.add("active");
-      // On mobile the panel is a full-width overlay (responsive.css), so spring
-      // to the viewport width -- springing to --right-panel-width instead would
-      // settle short and then snap to full width when the inline style clears.
-      var target = window.matchMedia("(max-width: 640px)").matches
-        ? document.documentElement.clientWidth
-        : parseFloat(getComputedStyle(panel).getPropertyValue("--right-panel-width"));
-      springWidth(panel, target);
+      var target = getComputedStyle(panel).getPropertyValue("--right-panel-width");
+      springWidth(panel, parseFloat(target));
     }
     toggle.addEventListener("click", function () {
       if (panel.classList.contains("collapsed")) {

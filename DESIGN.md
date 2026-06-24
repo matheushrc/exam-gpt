@@ -278,8 +278,10 @@ partials in `templates/partials/` and the shared shell scripts
   `overflow: hidden`).
 - Content scrolls in `.chat-scroll` (an **inner** scroll container), not the
   window — keep this in mind when scripting scroll/scroll-into-view.
-- **Mobile (`max-width: 640px`):** the sidebar drops to a bottom tab bar and the
-  metadata grid collapses to one column (see `base.css` and
+- **Mobile (`max-width: 640px`):** the chat page hides the shared sidebar and
+  keeps the chat surface full width; the right-hand chat settings panel becomes
+  a full-screen overlay. Upload-page metadata grids collapse to one column (see
+  `apps/chat/static/chat/css/responsive.css` and
   `apps/upload/static/upload/css/responsive.css` media queries).
 
 ---
@@ -450,6 +452,6 @@ Concrete failure modes from real generations and prior bugs. Each is a hard rule
 3. Serif for content, sans for chrome; tabular nums for numbers.
 4. Verify it reads in all three variants and both light/dark.
 5. Native focus states preserved; controls reach 44px where they're primary.
-6. Responsive at ≤640px (sidebar → bottom tabs, grids → single column).
+6. Responsive at ≤640px (chat sidebar hidden, grids → single column).
 7. Copy in pt-BR, sentence case, action-named.
 8. Markdown/LaTeX text edited via the `markdownField` pattern.
