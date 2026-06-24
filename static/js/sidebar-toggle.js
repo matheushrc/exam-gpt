@@ -60,10 +60,15 @@
       });
     }
     window.PGShell.onViewportChange(function (isCompact) {
+      sidebar.classList.add("viewport-switching");
+      requestAnimationFrame(function () {
+        sidebar.classList.remove("viewport-switching");
+      });
       sidebar.classList.toggle("is-compact", isCompact);
       if (isCompact) {
         setMobileDrawer(false);
       } else {
+        sidebar.classList.remove("mobile-open");
         setDesktopSidebar();
       }
     });

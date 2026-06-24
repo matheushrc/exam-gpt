@@ -54,6 +54,7 @@
     function collapsePanel(skipSpring) {
       toggle.classList.remove("active");
       if (window.PGShell.isCompactViewport()) {
+        panel.classList.remove("mobile-open");
         panel.classList.add("collapsed");
         return;
       }
@@ -69,6 +70,7 @@
     function expandPanel(skipSpring) {
       toggle.classList.add("active");
       if (window.PGShell.isCompactViewport()) {
+        panel.classList.add("mobile-open");
         panel.classList.remove("collapsed");
         return;
       }
@@ -83,13 +85,22 @@
       springWidth(panel, parseFloat(target));
     }
     window.PGShell.onViewportChange(function (isCompact) {
+      panel.classList.add("viewport-switching");
+      requestAnimationFrame(function () {
+        panel.classList.remove("viewport-switching");
+      });
+      panel.classList.toggle("is-compact", isCompact);
       if (isCompact) {
         desktopWasCollapsed = panel.classList.contains("collapsed");
-        collapsePanel(true);
-      } else if (desktopWasCollapsed) {
+        panel.classList.remove("mobile-open");
         collapsePanel(true);
       } else {
-        expandPanel(true);
+        panel.classList.remove("mobile-open");
+        if (desktopWasCollapsed) {
+          collapsePanel(true);
+        } else {
+          expandPanel(true);
+        }
       }
     });
     toggle.addEventListener("click", function () {

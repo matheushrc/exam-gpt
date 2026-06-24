@@ -11,9 +11,35 @@
   transition: border-color var(--transition-med);
 }
 
+.right-panel.is-compact {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100vh;
+  z-index: 40;
+  width: min(var(--right-panel-width), 100vw);
+  transform: translateX(100%);
+  transition: transform var(--transition-med), border-color var(--transition-med);
+}
+
+.right-panel.is-compact.mobile-open {
+  transform: translateX(0);
+}
+
+.right-panel.viewport-switching,
+.right-panel.viewport-switching * {
+  transition: none !important;
+}
+
 .right-panel.collapsed {
   width: 0;
   border-left-color: transparent;
+}
+
+.right-panel.is-compact.collapsed {
+  width: min(var(--right-panel-width), 100vw);
+  border-left-color: transparent;
+  pointer-events: none;
 }
 
 .right-panel-header {
@@ -54,6 +80,11 @@
 .right-panel.collapsed .right-panel-body {
   opacity: 0;
   pointer-events: none;
+}
+
+.right-panel.is-compact .right-panel-header,
+.right-panel.is-compact .right-panel-body {
+  width: min(var(--right-panel-width), 100vw);
 }
 
 .settings-group {
