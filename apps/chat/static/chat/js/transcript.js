@@ -25,8 +25,18 @@
     }
   }
 
+  function preprocessMarkdown(text) {
+    if (!text) return "";
+    return text.replace(/\$\$([\s\S]*?)\$\$|\$([\s\S]*?)\$/g, function (match, blockMath, inlineMath) {
+      var math = blockMath || inlineMath || "";
+      var processedMath = math.replace(/\|/g, "\\vert");
+      return match.startsWith("$$") ? "$$" + processedMath + "$$" : "$" + processedMath + "$";
+    });
+  }
+
   function renderMarkdownInto(el, source) {
-    el.innerHTML = marked.parse(source || "");
+    var cleanSource = preprocessMarkdown(source || "");
+    el.innerHTML = marked.parse(cleanSource);
     if (typeof renderMathInElement === "function") {
       renderMathInElement(el, {
         delimiters: [

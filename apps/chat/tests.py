@@ -258,3 +258,7 @@ class ChatShellResponsiveTests(TestCase):
         self.assertEqual(res_medium[0]["similarity_tier"], "medium")
         self.assertEqual(res_low[0]["similarity_tier"], "low")
 
+    def test_preprocess_markdown_in_transcript_js(self):
+        transcript = Path("apps/chat/static/chat/js/transcript.js").read_text()
+        self.assertIn("function preprocessMarkdown(text)", transcript)
+
