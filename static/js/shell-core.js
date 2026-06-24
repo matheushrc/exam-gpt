@@ -73,11 +73,37 @@
     el._springRaf = requestAnimationFrame(step);
   }
 
+  function isCompactViewport() {
+    return window.matchMedia("(max-width: 640px)").matches;
+  }
+
+  function onViewportChange(handler) {
+    var mediaQuery = window.matchMedia("(max-width: 640px)");
+    function handleChange(event) {
+      handler(event.matches);
+    }
+    if (mediaQuery.addEventListener) {
+      mediaQuery.addEventListener("change", handleChange);
+    } else {
+      mediaQuery.addListener(handleChange);
+    }
+    handler(mediaQuery.matches);
+    return function unsubscribe() {
+      if (mediaQuery.removeEventListener) {
+        mediaQuery.removeEventListener("change", handleChange);
+      } else {
+        mediaQuery.removeListener(handleChange);
+      }
+    };
+  }
+
   window.PGShell = {
     STORAGE_KEYS: STORAGE_KEYS,
     getCsrfToken: getCsrfToken,
     loadSettings: loadSettings,
     saveSetting: saveSetting,
+    isCompactViewport: isCompactViewport,
+    onViewportChange: onViewportChange,
     springWidth: springWidth,
   };
 })();
