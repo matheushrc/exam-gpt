@@ -9,6 +9,23 @@ from django.test import TestCase
 from rest_framework.test import APIClient
 
 from apps.chat import cache
+from apps.chat.settings import chat_settings
+
+
+class ChatModelPresetsSettingTests(TestCase):
+    def test_chat_model_presets_are_the_accessible_free_tier_models(self):
+        self.assertEqual(
+            chat_settings.CHAT_MODEL_PRESETS,
+            [
+                "gemini-3.1-flash-lite",
+                "gemini-3.5-flash",
+                "gemini-3-flash-preview",
+                "gemini-2.5-flash",
+                "gemini-2.5-flash-lite",
+            ],
+        )
+        self.assertNotIn("gemini-3.1-flash", chat_settings.CHAT_MODEL_PRESETS)
+        self.assertNotIn("gemini-3.1-pro", chat_settings.CHAT_MODEL_PRESETS)
 
 
 class CacheTests(TestCase):
