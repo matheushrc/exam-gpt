@@ -101,9 +101,16 @@
     els.footer.classList.toggle("hidden", stage !== "review");
   }
 
+  function preserveMathDelimitersForMarkdown(source) {
+    if (!source) return "";
+    return source.replace(/\\\(/g, "\\\\(").replace(/\\\)/g, "\\\\)");
+  }
+
   function renderMarkdownInto(node, source) {
     if (typeof marked !== "undefined") {
-      node.innerHTML = marked.parse(source || "");
+      node.innerHTML = marked.parse(
+        preserveMathDelimitersForMarkdown(source || "")
+      );
     } else {
       node.textContent = source || "";
     }

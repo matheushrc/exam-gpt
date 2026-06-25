@@ -27,3 +27,14 @@ class UploadViewTests(TestCase):
 
         self.assertIn('{ left: "\\\\(", right: "\\\\)", display: false }', upload_screen)
         self.assertNotIn('{ left: "$", right: "$", display: false }', upload_screen)
+
+    def test_marked_preserves_parenthesized_math_delimiters_for_katex(self):
+        upload_screen = Path("apps/upload/static/upload/js/upload-screen.js").read_text()
+
+        self.assertIn(
+            "function preserveMathDelimitersForMarkdown(source)", upload_screen
+        )
+        self.assertIn(
+            'marked.parse(\n        preserveMathDelimitersForMarkdown(source || "")\n      )',
+            upload_screen,
+        )

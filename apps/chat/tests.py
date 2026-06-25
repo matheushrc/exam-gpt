@@ -339,3 +339,12 @@ class ChatShellResponsiveTests(TestCase):
         transcript = Path("apps/chat/static/chat/js/transcript.js").read_text()
 
         self.assertIn("throwOnError: false", transcript)
+
+    def test_marked_preserves_parenthesized_math_delimiters_for_katex(self):
+        transcript = Path("apps/chat/static/chat/js/transcript.js").read_text()
+
+        self.assertIn("function preserveMathDelimitersForMarkdown(source)", transcript)
+        self.assertIn(
+            "marked.parse(preserveMathDelimitersForMarkdown(cleanSource))",
+            transcript,
+        )

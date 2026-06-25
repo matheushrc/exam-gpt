@@ -36,9 +36,14 @@
       });
   }
 
+  function preserveMathDelimitersForMarkdown(source) {
+    if (!source) return "";
+    return source.replace(/\\\(/g, "\\\\(").replace(/\\\)/g, "\\\\)");
+  }
+
   function renderMarkdownInto(el, source) {
     var cleanSource = preprocessMarkdown(source || "");
-    el.innerHTML = marked.parse(cleanSource);
+    el.innerHTML = marked.parse(preserveMathDelimitersForMarkdown(cleanSource));
     if (typeof renderMathInElement === "function") {
       renderMathInElement(el, {
         delimiters: [
