@@ -339,10 +339,12 @@ app, split by concern under
 
 Question enunciados and answers are **Markdown with inline/display LaTeX**.
 Rendering uses [marked](https://marked.js.org) + [KaTeX](https://katex.org)
-(auto-render), both loaded in `base.html`. Delimiters: `$…$` (inline),
-`$$…$$` (display), with `throwOnError: false`. Rendered output goes into an
-`.md-content` container. Always render user-editable math through the
-`markdownField` preview rather than rolling a one-off.
+(auto-render), both loaded in `base.html`. Delimiters: `\(...\)` (inline),
+`$$...$$` (display), with `throwOnError: false`. Single-dollar inline math is
+intentionally not rendered because `R$ 250,00` currency appears in exam text.
+Rendered output goes into an `.md-content` container. Always render
+user-editable math through the `markdownField` preview rather than rolling a
+one-off.
 
 ---
 
