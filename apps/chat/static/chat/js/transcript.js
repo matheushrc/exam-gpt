@@ -186,6 +186,7 @@
         var reader = response.body.getReader();
         var decoder = new TextDecoder();
         var buffer = "";
+        var streamDone = false;
 
         function pump() {
           return reader.read().then(function (result) {
@@ -206,6 +207,7 @@
                 renderMarkdownInto(ensureBubble()._content, answerText);
                 scrollToBottom();
               } else if (event.type === "done") {
+                streamDone = true;
                 conversationHistory = event.message_history || null;
                 finishAssistantBubble(ensureBubble(), event.sources);
               } else if (event.type === "error") {
@@ -214,6 +216,11 @@
             });
 
             return pump();
+          }).catch(function (err) {
+            if (streamDone) {
+              return;
+            }
+            throw err;
           });
         }
 
