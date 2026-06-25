@@ -89,6 +89,11 @@ Recent history uses concise, imperative commit messages, sometimes with a
 conventional prefix such as `feat(scope):`, `fix(scope):`, or `refactor(scope):`.
 Keep commits focused, for example `fix(settings): update default mongo host`.
 
+Never run `git add` and `git commit` combined in a single command line (e.g.
+using `&&` or `;`). Stage files and commit them using separate command lines.
+
+Never commit plan files (such as implementation plans), spec files (such as design specs), nor mockup files.
+
 Pull requests should include a short summary, the commands run for verification,
 linked issues when applicable, and screenshots or API examples for UI/API
 changes. Call out new environment variables, migrations, or data-indexing steps.
