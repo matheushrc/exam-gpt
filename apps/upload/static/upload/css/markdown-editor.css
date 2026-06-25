@@ -72,6 +72,10 @@
   min-height: 42px;
 }
 
+.mdf-preview.md-content {
+  white-space: pre-wrap;
+}
+
 .mdf-preview:empty::before {
   content: "Nada para visualizar.";
   color: var(--color-text-muted);
