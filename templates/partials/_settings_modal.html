@@ -25,9 +25,9 @@
                 <span class="field-title">Modelo de chat</span>
                 <span class="field-desc">Escolha um preset ou informe qualquer ID compatível com pydantic-ai.</span>
                 <div id="model-presets" class="model-presets">
-                    <button type="button" class="preset-chip" data-model="gemini-3.1-flash-lite">gemini-3.1-flash-lite</button>
-                    <button type="button" class="preset-chip" data-model="gemini-3.1-flash">gemini-3.1-flash</button>
-                    <button type="button" class="preset-chip" data-model="gemini-3.1-pro">gemini-3.1-pro</button>
+                    {% for preset in chat_model_presets %}
+                        <button type="button" class="preset-chip" data-model="{{ preset }}">{{ preset }}</button>
+                    {% endfor %}
                 </div>
                 <input id="setting-model"
                        type="text"

@@ -2,6 +2,8 @@ from django.test import TestCase
 from django.urls import reverse
 from pathlib import Path
 
+from apps.chat.settings import chat_settings
+
 
 class UploadViewTests(TestCase):
     def test_get_renders_upload_screen(self):
@@ -52,3 +54,12 @@ class UploadViewTests(TestCase):
                 "gemini-2.5-flash-lite",
             ],
         )
+
+    def test_upload_page_renders_one_preset_chip_per_configured_model(self):
+        response = self.client.get(reverse("upload"))
+        html = response.content.decode("utf-8")
+
+        for model in chat_settings.CHAT_MODEL_PRESETS:
+            self.assertIn(f'data-model="{model}"', html)
+        self.assertNotIn('data-model="gemini-3.1-flash"', html)
+        self.assertNotIn('data-model="gemini-3.1-pro"', html)

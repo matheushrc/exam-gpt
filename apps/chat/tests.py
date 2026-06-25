@@ -379,3 +379,12 @@ class ChatShellResponsiveTests(TestCase):
             "marked.parse(preserveMathDelimitersForMarkdown(cleanSource))",
             transcript,
         )
+
+    def test_chat_page_renders_one_preset_chip_per_configured_model(self):
+        response = self.client.get("/")
+        html = response.content.decode("utf-8")
+
+        for model in chat_settings.CHAT_MODEL_PRESETS:
+            self.assertIn(f'data-model="{model}"', html)
+        self.assertNotIn('data-model="gemini-3.1-flash"', html)
+        self.assertNotIn('data-model="gemini-3.1-pro"', html)
