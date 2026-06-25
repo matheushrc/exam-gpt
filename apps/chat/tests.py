@@ -334,3 +334,8 @@ class ChatShellResponsiveTests(TestCase):
 
         self.assertIn('{ left: "\\\\(", right: "\\\\)", display: false }', transcript)
         self.assertNotIn('{ left: "$", right: "$", display: false }', transcript)
+
+    def test_katex_disables_throw_on_error(self):
+        transcript = Path("apps/chat/static/chat/js/transcript.js").read_text()
+
+        self.assertIn("throwOnError: false", transcript)

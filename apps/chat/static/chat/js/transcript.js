@@ -45,6 +45,7 @@
           { left: "$$", right: "$$", display: true },
           { left: "\\(", right: "\\)", display: false },
         ],
+        throwOnError: false,
       });
     }
   }
