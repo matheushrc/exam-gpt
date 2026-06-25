@@ -1160,7 +1160,7 @@
       card.classList.toggle("is-open");
       renderHeadMeta();
       if (card.classList.contains("is-open")) {
-        grid.querySelectorAll(".mdf-area").forEach(function (area) {
+        card.querySelectorAll(".mdf-area").forEach(function (area) {
           if (typeof area._autoResize === "function") area._autoResize();
         });
       }
