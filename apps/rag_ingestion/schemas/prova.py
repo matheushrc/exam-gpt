@@ -1,6 +1,15 @@
 from datetime import date
+from typing import Annotated
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, BeforeValidator, Field
+
+from apps.rag_ingestion.markdown_normalize import normalize_extracted_markdown
+
+MarkdownText = Annotated[str, BeforeValidator(normalize_extracted_markdown)]
+NullableMarkdownText = Annotated[
+    str | None,
+    BeforeValidator(normalize_extracted_markdown),
+]
 
 
 class Nota(BaseModel):
@@ -14,10 +23,10 @@ class Nota(BaseModel):
 
 
 class QuestaoBase(BaseModel):
-    enunciado: str = Field(
+    enunciado: MarkdownText = Field(
         description="Texto completo da questão em Markdown.",
         examples=[
-            "**Alice** afirma que o protocolo _X_ é ineficiente. **Alice está certa?** Justifique."
+            r"Uma conta de R$ 250,00 tem variação \(x^2\). **Explique o cálculo.**"
         ],
     )
     pontuacao: float = Field(
@@ -25,8 +34,9 @@ class QuestaoBase(BaseModel):
         examples=[1.5, 2.0, 0.5],
         ge=0.0,
     )
-    resposta: str | None = Field(
+    resposta: NullableMarkdownText = Field(
         description="Resposta do aluno em Markdown. Null se em branco.",
+        examples=[r"A resposta usa \(z = 1{,}96\) e preserva R$ 55,00."],
         default=None,
     )
     nota_recebida: float | None = Field(

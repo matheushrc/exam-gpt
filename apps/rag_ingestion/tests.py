@@ -13,6 +13,8 @@ from turbovec import IdMapIndex
 
 from apps.rag_ingestion.agents.Google import GoogleAgent
 from apps.rag_ingestion.extract import _make_agent
+from apps.rag_ingestion.markdown_normalize import normalize_extracted_markdown
+from apps.rag_ingestion.schemas.prova import Questao as SchemaQuestao
 from apps.rag_ingestion.models import Chunks, Prova, Questao
 from apps.rag_ingestion.embed import (
     DEFAULT_JSON_ROOT,
@@ -61,6 +63,38 @@ class ChunkFormattingTests(SimpleTestCase):
         self.assertIn("Redes de Computadores - Questão 1", chunk)
         self.assertIn("Defina rota.", chunk)
         self.assertIn("Gabarito/Resposta esperada: Roteamento escolhe caminhos.", chunk)
+
+
+class MarkdownNormalizeTests(SimpleTestCase):
+    def test_preserves_brazilian_currency_markers(self):
+        text = "A media amostral e de R$ 250,00, com desvio padrao de R$ 55,00."
+
+        self.assertEqual(normalize_extracted_markdown(text), text)
+
+    def test_converts_obvious_single_dollar_inline_math(self):
+        text = "Calcule $x^2 + y$ e justifique."
+
+        self.assertEqual(
+            normalize_extracted_markdown(text),
+            r"Calcule \(x^2 + y\) e justifique.",
+        )
+
+    def test_does_not_convert_display_math_blocks(self):
+        text = "Use:\n$$\nx^2 + y\n$$\nDepois responda."
+
+        self.assertEqual(normalize_extracted_markdown(text), text)
+
+    def test_schema_normalizes_enunciado_and_resposta(self):
+        questao = SchemaQuestao(
+            enunciado="Resolva $x+1$ e considere R$ 10,00.",
+            pontuacao=1.0,
+            resposta="Resultado: $x=-1$.",
+            nota_recebida=None,
+            subquestoes=None,
+        )
+
+        self.assertEqual(questao.enunciado, r"Resolva \(x+1\) e considere R$ 10,00.")
+        self.assertEqual(questao.resposta, r"Resultado: \(x=-1\).")
 
 
 class VectorIndexRemovalTests(SimpleTestCase):
