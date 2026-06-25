@@ -1,9 +1,33 @@
+import csv
 import json
 from pathlib import Path
 
 from apps.chat.settings import chat_settings
 
 CACHE_ROOT = Path(chat_settings.CACHE_ROOT)
+
+def _load_docentes_mapping() -> dict[str, str]:
+    mapping = {}
+    csv_path = Path("datasets/docentes.csv")
+    if not csv_path.exists():
+        return mapping
+    try:
+        with csv_path.open(encoding="utf-8") as f:
+            reader = csv.reader(f)
+            next(reader, None)  # Pula o cabeçalho
+            for row in reader:
+                if len(row) >= 2:
+                    nome = row[0].strip()
+                    email = row[1].strip()
+                    if email and nome:
+                        username = email.split("@")[0].lower()
+                        mapping[username] = nome.title()
+    except Exception:
+        pass
+    return mapping
+
+DOCENTES_NAMES = _load_docentes_mapping()
+
 
 
 def get_semesters() -> list[str]:
@@ -39,7 +63,7 @@ def get_professors_for_semester(semester: str) -> list[dict]:
         usernames.update(entry.get("members", []))
     return sorted(
         (
-            {"username": username, "name": username.replace(".", " ").title()}
+            {"username": username, "name": DOCENTES_NAMES.get(username, username.replace(".", " ").title())}
             for username in usernames
         ),
         key=lambda professor: professor["name"],
@@ -54,7 +78,7 @@ def get_professors_for_materia(semester: str, materia: str) -> list[dict]:
             usernames.update(entry.get("members", []))
     return sorted(
         (
-            {"username": username, "name": username.replace(".", " ").title()}
+            {"username": username, "name": DOCENTES_NAMES.get(username, username.replace(".", " ").title())}
             for username in usernames
         ),
         key=lambda professor: professor["name"],

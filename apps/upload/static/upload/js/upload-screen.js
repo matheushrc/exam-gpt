@@ -50,6 +50,50 @@
     return node;
   }
 
+  // Highly efficient O(N) subsequence and overlap string similarity score function
+  function getSimilarityScore(str, query) {
+    str = str.toLowerCase();
+    query = query.toLowerCase();
+    
+    if (str === query) return 1.0;
+    if (str.indexOf(query) === 0) return 0.8 + (query.length / str.length) * 0.19;
+    
+    var idx = str.indexOf(query);
+    if (idx !== -1) return 0.6 + (query.length / str.length) * 0.19;
+    
+    var queryIdx = 0;
+    var matches = 0;
+    var gaps = 0;
+    for (var i = 0; i < str.length; i++) {
+      if (str[i] === query[queryIdx]) {
+        queryIdx++;
+        matches++;
+        if (queryIdx === query.length) break;
+      } else if (queryIdx > 0) {
+        gaps++;
+      }
+    }
+    
+    if (matches === query.length) {
+      return 0.4 + (query.length / (query.length + gaps)) * 0.19;
+    }
+    
+    var set1 = {};
+    var set2 = {};
+    for (var j = 0; j < str.length; j++) set1[str[j]] = true;
+    for (var k = 0; k < query.length; k++) set2[query[k]] = true;
+    var intersection = 0;
+    for (var key in set2) {
+      if (set1[key]) intersection++;
+    }
+    
+    if (intersection > 0) {
+      return (intersection / Math.max(str.length, query.length)) * 0.3;
+    }
+    
+    return 0.0;
+  }
+
   function showStage(stage) {
     els.empty.classList.toggle("hidden", stage !== "empty");
     els.processing.classList.toggle("hidden", stage !== "processing");
@@ -177,8 +221,6 @@
     loadTeachers();
   }
 
-  // Fetch the CS faculty for the prova's semester. Emails are derived from the
-  // UFFS username (username@uffs.edu.br); the cache only stores usernames.
   function loadTeachers() {
     var semester = prova.ano_semestre || "";
     var url = "/api/professors/";
@@ -189,6 +231,7 @@
         return r.ok ? r.json() : [];
       })
       .then(function (list) {
+        var seen = {};
         teachers = (list || [])
           .filter(function (p) {
             return p && p.username;
@@ -199,7 +242,16 @@
               name: p.name || p.username,
               email: p.username + UFFS_DOMAIN,
             };
+          })
+          .filter(function (t) {
+            var key = t.name.toLowerCase() + "|" + t.email.toLowerCase();
+            if (seen[key]) return false;
+            seen[key] = true;
+            return true;
           });
+        teachers.sort(function (a, b) {
+          return a.name.localeCompare(b.name, "pt-BR", { sensitivity: "base" });
+        });
         prematchProfessor();
         renderProfessorField();
       })
@@ -215,7 +267,8 @@
     var hint = profHint.toLowerCase();
     var match = teachers.find(function (t) {
       var name = t.name.toLowerCase();
-      return name === hint || name.indexOf(hint) !== -1 || hint.indexOf(name) !== -1;
+      var username = (t.username || "").toLowerCase();
+      return name === hint || name.indexOf(hint) !== -1 || hint.indexOf(name) !== -1 || username === hint;
     });
     if (match && prova.professor.indexOf(match.email) === -1) {
       prova.professor.push(match.email);
@@ -291,13 +344,27 @@
       menu.innerHTML = "";
       var q = input.value.trim().toLowerCase();
       var available = (opts.options || []).filter(function (o) {
-        if (selected.indexOf(o.value) !== -1) return false;
-        if (!q) return true;
-        return (
-          o.label.toLowerCase().indexOf(q) !== -1 ||
-          (o.sub || "").toLowerCase().indexOf(q) !== -1
-        );
+        return selected.indexOf(o.value) === -1;
       });
+
+      if (!q) {
+        available = available.slice(0, 5);
+      } else {
+        available = available
+          .map(function (o) {
+            var labelScore = getSimilarityScore(o.label, q);
+            var subScore = getSimilarityScore(o.sub || "", q);
+            o.score = Math.max(labelScore, subScore);
+            return o;
+          })
+          .filter(function (o) {
+            return o.score > 0;
+          })
+          .sort(function (a, b) {
+            if (b.score !== a.score) return b.score - a.score;
+            return a.label.localeCompare(b.label, "pt-BR", { sensitivity: "base" });
+          });
+      }
 
       available.slice(0, 50).forEach(function (o) {
         var item = el("button", "ms-item");

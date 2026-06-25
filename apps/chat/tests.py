@@ -60,6 +60,30 @@ class CacheTests(TestCase):
             sorted(professor["name"] for professor in professors),
         )
 
+    def test_get_professors_for_materia_resolves_full_names(self):
+        semester = "2024.1"
+        semester_dir = self.cache_root / semester
+        semester_dir.mkdir(parents=True, exist_ok=True)
+        schedule = [
+            {
+                "id": 1,
+                "code": "GEX003",
+                "name": "GEX003 - Algoritmos e programação",
+                "group": 1,
+                "members": ["felipegrando"],
+                "weekDay": 3,
+                "period": 4,
+            }
+        ]
+        with (semester_dir / "schedule.json").open("w", encoding="utf-8") as f:
+            json.dump(schedule, f)
+            
+        with mock.patch("apps.chat.cache.CACHE_ROOT", self.cache_root):
+            professors = cache.get_professors_for_materia(semester, "algoritmos")
+            self.assertEqual(len(professors), 1)
+            self.assertEqual(professors[0]["name"], "Felipe Grando")
+
+
 
 class SyncScheduleCommandTests(TestCase):
     def setUp(self):
