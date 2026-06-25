@@ -14,6 +14,7 @@ from turbovec import IdMapIndex
 from apps.rag_ingestion.agents.Google import GoogleAgent
 from apps.rag_ingestion.extract import _make_agent
 from apps.rag_ingestion.markdown_normalize import normalize_extracted_markdown
+from apps.rag_ingestion.prompts.prova import EXAM_PROMPT
 from apps.rag_ingestion.schemas.prova import Questao as SchemaQuestao
 from apps.rag_ingestion.models import Chunks, Prova, Questao
 from apps.rag_ingestion.embed import (
@@ -111,6 +112,16 @@ class MarkdownNormalizeTests(SimpleTestCase):
 
         self.assertEqual(questao.enunciado, r"Resolva \(x+1\) e considere R$ 10,00.")
         self.assertEqual(questao.resposta, r"Resultado: \(x=-1\).")
+
+
+class ExtractionPromptMarkdownContractTests(SimpleTestCase):
+    def test_prompt_requires_parenthesized_inline_latex(self):
+        self.assertIn("\\(...\\)", EXAM_PROMPT)
+        self.assertIn("nunca use $...$ para matemática inline", EXAM_PROMPT)
+
+    def test_prompt_preserves_brazilian_currency_as_plain_text(self):
+        self.assertIn("R$ 250,00", EXAM_PROMPT)
+        self.assertIn("valor monetário", EXAM_PROMPT)
 
 
 class VectorIndexRemovalTests(SimpleTestCase):
