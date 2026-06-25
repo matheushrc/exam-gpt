@@ -32,7 +32,8 @@ DEBUG = os.environ.get("DEBUG", "True").lower() not in ("false", "0", "no")
 
 configure_logging(debug=DEBUG)
 
-ALLOWED_HOSTS = []
+_extra_hosts = [h for h in os.environ.get("ALLOWED_HOSTS", "").split(",") if h]
+ALLOWED_HOSTS = ["localhost", "127.0.0.1", *_extra_hosts]
 
 
 # Application definition

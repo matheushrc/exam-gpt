@@ -1,0 +1,69 @@
+{% extends "base.html" %}
+
+{% block title %}404 — Página não encontrada · Exam GPT{% endblock %}
+
+{% block extra_css %}
+    <style>
+        .error-page {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: var(--color-bg);
+            color: var(--color-text);
+            font-family: var(--font-serif);
+            text-align: center;
+            padding: 2rem;
+            gap: 1rem;
+        }
+
+        .error-code {
+            font-size: 6rem;
+            font-weight: 600;
+            letter-spacing: -2px;
+            color: var(--color-accent);
+            line-height: 1;
+        }
+
+        .error-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: var(--color-text);
+        }
+
+        .error-desc {
+            font-size: 1rem;
+            color: var(--color-text-muted);
+            max-width: 360px;
+            line-height: 1.6;
+        }
+
+        .error-link {
+            margin-top: 0.5rem;
+            display: inline-block;
+            padding: 0.55rem 1.4rem;
+            background: var(--color-accent);
+            color: var(--color-on-accent);
+            font-family: var(--font-sans);
+            font-size: 0.875rem;
+            font-weight: 500;
+            border-radius: var(--radius-md);
+            text-decoration: none;
+            transition: opacity var(--transition-fast);
+        }
+
+        .error-link:hover {
+            opacity: 0.85;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="error-page">
+        <div class="error-code">404</div>
+        <div class="error-title">Página não encontrada</div>
+        <p class="error-desc">O endereço que você acessou não existe ou foi movido.</p>
+        <a href="/" class="error-link">Voltar ao início</a>
+    </div>
+{% endblock %}

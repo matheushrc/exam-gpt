@@ -20,6 +20,11 @@ from django.contrib import admin
 from django.urls import include, path
 from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
 
+from settings.views import error_404, error_500
+
+handler404 = error_404
+handler500 = error_500
+
 urlpatterns = [
     path("__reload__/", include("django_browser_reload.urls")),
     # path("", SpectacularSwaggerView.as_view(url_name="schema"), name="swagger-ui"),
@@ -34,4 +39,9 @@ urlpatterns = [
     path("api/", include("apps.rag_search.urls")),
     path("api/", include("apps.rag_ingestion.urls")),
     path("upload/", include("apps.upload.urls")),
+]
+
+urlpatterns += [
+    path("404/", error_404),
+    path("500/", error_500),
 ]
