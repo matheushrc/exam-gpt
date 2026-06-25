@@ -38,3 +38,17 @@ class UploadViewTests(TestCase):
             'marked.parse(\n        preserveMathDelimitersForMarkdown(source || "")\n      )',
             upload_screen,
         )
+
+    def test_upload_view_passes_model_presets_to_template(self):
+        response = self.client.get(reverse("upload"))
+
+        self.assertEqual(
+            list(response.context["chat_model_presets"]),
+            [
+                "gemini-3.1-flash-lite",
+                "gemini-3.5-flash",
+                "gemini-3-flash-preview",
+                "gemini-2.5-flash",
+                "gemini-2.5-flash-lite",
+            ],
+        )

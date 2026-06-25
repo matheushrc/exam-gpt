@@ -36,6 +36,7 @@ class ChatView(TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["conversation_id"] = self.request.GET.get("c", "")
+        context["chat_model_presets"] = chat_settings.CHAT_MODEL_PRESETS
         return context
 
 

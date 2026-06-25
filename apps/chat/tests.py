@@ -306,6 +306,20 @@ class ChatShellResponsiveTests(TestCase):
         self.assertNotIn("chat-title", transcript)
         self.assertNotIn("chat-subtitle", transcript)
 
+    def test_chat_view_passes_model_presets_to_template(self):
+        response = self.client.get("/")
+
+        self.assertEqual(
+            list(response.context["chat_model_presets"]),
+            [
+                "gemini-3.1-flash-lite",
+                "gemini-3.5-flash",
+                "gemini-3-flash-preview",
+                "gemini-2.5-flash",
+                "gemini-2.5-flash-lite",
+            ],
+        )
+
     def test_right_panel_close_button_is_removed(self):
         response = self.client.get("/")
         html = response.content.decode("utf-8")
