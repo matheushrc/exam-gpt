@@ -21,3 +21,9 @@ class UploadViewTests(TestCase):
         self.assertIn("q.resposta = normalizeExtractedText(q.resposta)", upload_screen)
         self.assertIn("sub.enunciado = normalizeExtractedText(sub.enunciado)", upload_screen)
         self.assertIn("sub.resposta = normalizeExtractedText(sub.resposta)", upload_screen)
+
+    def test_katex_does_not_use_single_dollar_inline_delimiters(self):
+        upload_screen = Path("apps/upload/static/upload/js/upload-screen.js").read_text()
+
+        self.assertIn('{ left: "\\\\(", right: "\\\\)", display: false }', upload_screen)
+        self.assertNotIn('{ left: "$", right: "$", display: false }', upload_screen)

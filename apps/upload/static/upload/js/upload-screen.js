@@ -111,7 +111,7 @@
       renderMathInElement(node, {
         delimiters: [
           { left: "$$", right: "$$", display: true },
-          { left: "$", right: "$", display: false },
+          { left: "\\(", right: "\\)", display: false },
         ],
         throwOnError: false,
       });
@@ -1062,7 +1062,7 @@
     var enunBlock = fieldBlock("Enunciado");
     enunBlock.appendChild(
       markdownField(q.enunciado, {
-        placeholder: "Enunciado da questão (Markdown + LaTeX: $x^2$)",
+        placeholder: "Enunciado da questão (Markdown + LaTeX: \\(x^2\\))",
         rows: 3,
         onChange: function (v) {
           q.enunciado = v;

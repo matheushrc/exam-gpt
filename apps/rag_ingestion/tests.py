@@ -84,6 +84,22 @@ class MarkdownNormalizeTests(SimpleTestCase):
 
         self.assertEqual(normalize_extracted_markdown(text), text)
 
+    def test_preserves_inline_code_spans(self):
+        text = "Use o caminho `$HOME` antes de calcular $x+1$."
+
+        self.assertEqual(
+            normalize_extracted_markdown(text),
+            r"Use o caminho `$HOME` antes de calcular \(x+1\).",
+        )
+
+    def test_preserves_fenced_code_blocks_with_dollar_pairs(self):
+        text = "Exemplo:\n```bash\nexport PATH=\"$HOME/bin:$PATH\"\n```\nDepois calcule $x+1$."
+
+        self.assertEqual(
+            normalize_extracted_markdown(text),
+            "Exemplo:\n```bash\nexport PATH=\"$HOME/bin:$PATH\"\n```\nDepois calcule \\(x+1\\).",
+        )
+
     def test_schema_normalizes_enunciado_and_resposta(self):
         questao = SchemaQuestao(
             enunciado="Resolva $x+1$ e considere R$ 10,00.",

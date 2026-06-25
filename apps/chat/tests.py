@@ -328,3 +328,9 @@ class ChatShellResponsiveTests(TestCase):
     def test_preprocess_markdown_in_transcript_js(self):
         transcript = Path("apps/chat/static/chat/js/transcript.js").read_text()
         self.assertIn("function preprocessMarkdown(text)", transcript)
+
+    def test_katex_does_not_use_single_dollar_inline_delimiters(self):
+        transcript = Path("apps/chat/static/chat/js/transcript.js").read_text()
+
+        self.assertIn('{ left: "\\\\(", right: "\\\\)", display: false }', transcript)
+        self.assertNotIn('{ left: "$", right: "$", display: false }', transcript)
