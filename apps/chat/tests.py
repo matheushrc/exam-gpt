@@ -77,11 +77,54 @@ class CacheTests(TestCase):
         ]
         with (semester_dir / "schedule.json").open("w", encoding="utf-8") as f:
             json.dump(schedule, f)
-            
-        with mock.patch("apps.chat.cache.CACHE_ROOT", self.cache_root):
+
+        with mock.patch.dict(
+            cache.DOCENTES_NAMES,
+            {"felipegrando": "Felipe Grando"},
+            clear=True,
+        ):
             professors = cache.get_professors_for_materia(semester, "algoritmos")
-            self.assertEqual(len(professors), 1)
-            self.assertEqual(professors[0]["name"], "Felipe Grando")
+
+        self.assertEqual(len(professors), 1)
+        self.assertEqual(professors[0]["name"], "Felipe Grando")
+
+    def test_get_all_professors_returns_docentes_names(self):
+        with mock.patch.dict(
+            cache.DOCENTES_NAMES,
+            {
+                "felipegrando": "Felipe Grando",
+                "maria.souza": "Maria Souza",
+            },
+            clear=True,
+        ):
+            professors = cache.get_all_professors()
+
+        self.assertEqual(
+            professors,
+            [
+                {"username": "felipegrando", "name": "Felipe Grando"},
+                {"username": "maria.souza", "name": "Maria Souza"},
+            ],
+        )
+
+
+class ProfessorsViewTests(TestCase):
+    def setUp(self):
+        self.client = APIClient()
+
+    def test_get_without_semester_returns_docentes_names(self):
+        with mock.patch.dict(
+            cache.DOCENTES_NAMES,
+            {"felipegrando": "Felipe Grando"},
+            clear=True,
+        ):
+            response = self.client.get("/api/professors/")
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json(),
+            [{"username": "felipegrando", "name": "Felipe Grando"}],
+        )
 
 
 
@@ -285,4 +328,3 @@ class ChatShellResponsiveTests(TestCase):
     def test_preprocess_markdown_in_transcript_js(self):
         transcript = Path("apps/chat/static/chat/js/transcript.js").read_text()
         self.assertIn("function preprocessMarkdown(text)", transcript)
-

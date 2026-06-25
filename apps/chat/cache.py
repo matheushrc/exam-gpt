@@ -5,10 +5,12 @@ from pathlib import Path
 from apps.chat.settings import chat_settings
 
 CACHE_ROOT = Path(chat_settings.CACHE_ROOT)
+DOCENTES_CSV = Path(__file__).resolve().parents[2] / "datasets" / "docentes.csv"
+
 
 def _load_docentes_mapping() -> dict[str, str]:
     mapping = {}
-    csv_path = Path("datasets/docentes.csv")
+    csv_path = DOCENTES_CSV
     if not csv_path.exists():
         return mapping
     try:
@@ -28,6 +30,22 @@ def _load_docentes_mapping() -> dict[str, str]:
 
 DOCENTES_NAMES = _load_docentes_mapping()
 
+
+def _professor_option(username: str) -> dict:
+    return {
+        "username": username,
+        "name": DOCENTES_NAMES.get(username, username.replace(".", " ").title()),
+    }
+
+
+def get_all_professors() -> list[dict]:
+    return sorted(
+        (
+            {"username": username, "name": name}
+            for username, name in DOCENTES_NAMES.items()
+        ),
+        key=lambda professor: professor["name"],
+    )
 
 
 def get_semesters() -> list[str]:
@@ -62,10 +80,7 @@ def get_professors_for_semester(semester: str) -> list[dict]:
     for entry in get_schedule(semester):
         usernames.update(entry.get("members", []))
     return sorted(
-        (
-            {"username": username, "name": DOCENTES_NAMES.get(username, username.replace(".", " ").title())}
-            for username in usernames
-        ),
+        (_professor_option(username) for username in usernames),
         key=lambda professor: professor["name"],
     )
 
@@ -77,10 +92,7 @@ def get_professors_for_materia(semester: str, materia: str) -> list[dict]:
         if materia_lower in entry.get("name", "").lower():
             usernames.update(entry.get("members", []))
     return sorted(
-        (
-            {"username": username, "name": DOCENTES_NAMES.get(username, username.replace(".", " ").title())}
-            for username in usernames
-        ),
+        (_professor_option(username) for username in usernames),
         key=lambda professor: professor["name"],
     )
 

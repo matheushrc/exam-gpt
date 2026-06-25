@@ -17,6 +17,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 
 from apps.chat.cache import (
+    get_all_professors,
     get_groups,
     get_professors_for_materia,
     get_professors_for_semester,
@@ -62,7 +63,7 @@ class ProfessorsView(APIView):
         semester = request.query_params.get("semester", "")
         materia = request.query_params.get("materia", "")
         if not semester:
-            return Response([], status=200)
+            return Response(get_all_professors(), status=200)
         if materia:
             professors = get_professors_for_materia(semester, materia)
         else:

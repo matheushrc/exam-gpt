@@ -196,6 +196,11 @@
 
   /* ---------------- normalization ---------------- */
 
+  function normalizeExtractedText(value) {
+    if (typeof value !== "string") return value;
+    return value.replace(/\\n/g, "\n");
+  }
+
   // Coerce the extracted payload into the editable shape the review UI expects.
   function normalizeProva() {
     if (!Array.isArray(prova.cursos)) prova.cursos = [];
@@ -210,7 +215,13 @@
     }
 
     (prova.questoes || []).forEach(function (q) {
+      q.enunciado = normalizeExtractedText(q.enunciado);
+      q.resposta = normalizeExtractedText(q.resposta);
       if (!Array.isArray(q.subquestoes)) q.subquestoes = [];
+      q.subquestoes.forEach(function (sub) {
+        sub.enunciado = normalizeExtractedText(sub.enunciado);
+        sub.resposta = normalizeExtractedText(sub.resposta);
+      });
     });
   }
 
@@ -222,9 +233,7 @@
   }
 
   function loadTeachers() {
-    var semester = prova.ano_semestre || "";
     var url = "/api/professors/";
-    if (semester) url += "?semester=" + encodeURIComponent(semester);
 
     fetch(url)
       .then(function (r) {
