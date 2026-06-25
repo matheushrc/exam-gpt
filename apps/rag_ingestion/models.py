@@ -26,12 +26,12 @@ class Questao(Model):
     )
 
     enunciado = TextField(
-        help_text="Texto completo da questão, incluindo expressões matemáticas em LaTeX inline ($...$).",
+        help_text="Texto completo da questão, incluindo expressões matemáticas em LaTeX inline (\\(...\\)) e blocos em $$...$$.",
     )
     subquestoes = JSONField(default=list)
 
     resposta = TextField(
-        help_text="Resposta completa da questão, incluindo explicações e expressões matemáticas em LaTeX inline ($...$).",
+        help_text="Resposta completa da questão, incluindo explicações e expressões matemáticas em LaTeX inline (\\(...\\)) e blocos em $$...$$.",
         null=True,
     )
 
