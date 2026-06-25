@@ -19,6 +19,7 @@ from apps.rag_ingestion.schemas.prova import Questao as SchemaQuestao
 from apps.rag_ingestion.models import Chunks, Prova, Questao
 from apps.rag_ingestion.embed import (
     DEFAULT_JSON_ROOT,
+    _resolve_professor,
     build_chunk,
     find_exam_json_files,
     load_exam_json,
@@ -328,3 +329,30 @@ class ProvaExtractAPIViewLoggingTests(TestCase):
         from apps.rag_ingestion import views as rag_views
 
         self.assertIs(rag_views.logger, logger)
+
+
+class ResolveProfessorTests(SimpleTestCase):
+    def test_email_resolved_from_docentes_csv(self):
+        from apps.rag_ingestion.embed import _EMAIL_TO_NAME
+        if _EMAIL_TO_NAME:
+            email, name = next(iter(_EMAIL_TO_NAME.items()))
+            self.assertEqual(_resolve_professor([email]), name)
+
+    def test_unknown_email_falls_back_to_title_cased_username(self):
+        self.assertEqual(_resolve_professor(["joao.silva@uffs.edu.br"]), "Joao Silva")
+
+    def test_plain_string_is_returned_unchanged(self):
+        self.assertEqual(_resolve_professor("Leandro Bordin"), "Leandro Bordin")
+
+    def test_multiple_emails_joined_with_comma(self):
+        result = _resolve_professor(["joao.silva@uffs.edu.br", "maria.souza@uffs.edu.br"])
+        self.assertEqual(result, "Joao Silva, Maria Souza")
+
+    def test_email_without_at_sign_treated_as_username(self):
+        self.assertEqual(_resolve_professor(["joao.silva"]), "Joao Silva")
+
+    def test_list_repr_string_does_not_appear_in_output(self):
+        result = _resolve_professor(["lbordin@uffs.edu.br"])
+        self.assertNotIn("[", result)
+        self.assertNotIn("]", result)
+        self.assertNotIn("@", result)

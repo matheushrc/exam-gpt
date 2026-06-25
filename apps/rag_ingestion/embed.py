@@ -27,6 +27,20 @@ INDEX_PATH = Path(embeddings_settings.INDEX_PATH)
 EMBEDDING_MODEL = embeddings_settings.EMBEDDING_MODEL
 EMBEDDING_DIMS = embeddings_settings.EMBEDDING_DIMS
 
+_DOCENTES_CSV = PROJECT_ROOT / "datasets" / "docentes.csv"
+
+
+def _load_email_to_name() -> dict[str, str]:
+    import csv
+
+    if not _DOCENTES_CSV.exists():
+        return {}
+    with _DOCENTES_CSV.open(encoding="utf-8") as f:
+        return {row["email"]: row["nome"].title() for row in csv.DictReader(f)}
+
+
+_EMAIL_TO_NAME: dict[str, str] = _load_email_to_name()
+
 
 @dataclass(frozen=True)
 class IngestionResult:
@@ -101,13 +115,36 @@ def get_embeddings_batch(client: genai.Client, texts: list[str]) -> list[list[fl
     return embeddings
 
 
+def _resolve_professor(value: Any) -> str:
+    """Normalise the professor field to a display name string.
+
+    The upload SPA sends a list of @uffs.edu.br email addresses; the seeding
+    pipeline sends a plain name string extracted by the LLM. Both need to
+    arrive in the DB as a human-readable name.
+
+    Emails are resolved via datasets/docentes.csv. Unknown emails fall back to
+    deriving a name from the username portion (e.g. "joao.silva" → "Joao Silva").
+    """
+    if isinstance(value, list):
+        names = []
+        for email in value:
+            email = str(email)
+            if email in _EMAIL_TO_NAME:
+                names.append(_EMAIL_TO_NAME[email])
+            else:
+                username = email.split("@")[0] if "@" in email else email
+                names.append(username.replace(".", " ").title())
+        return ", ".join(names)
+    return str(value) if value is not None else ""
+
+
 def upsert_exam(data: dict[str, Any]) -> tuple[Prova, list[Questao], list[str]]:
     prova, _ = Prova.objects.update_or_create(
         materia=data["materia"],
         ano_semestre=data["ano_semestre"],
         numero_avaliacao=data["numero_avaliacao"],
         defaults={
-            "professor": data["professor"],
+            "professor": _resolve_professor(data["professor"]),
             "cursos": data.get("cursos") or [],
             "data_aplicacao": data["data_aplicacao"],
             "nota_final": data.get("nota_final"),
