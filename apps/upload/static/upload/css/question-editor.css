@@ -158,6 +158,10 @@
   gap: 14px;
 }
 
+.review-editor-grid.has-subs {
+  grid-template-columns: 1fr;
+}
+
 .review-editor-grid > .review-field {
   min-width: 0;
 }

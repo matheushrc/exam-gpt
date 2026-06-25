@@ -477,6 +477,8 @@
       area.style.height = area.scrollHeight + 2 + "px";
     }
 
+    area._autoResize = autoResize;
+
     function setMode(mode) {
       var writing = mode === "write";
       writeTab.classList.toggle("active", writing);
@@ -1044,6 +1046,9 @@
     var body = el("div", "review-question-body");
 
     var grid = el("div", "review-editor-grid");
+    function renderGridLayout() {
+      grid.classList.toggle("has-subs", hasSubs(q));
+    }
 
     var enunBlock = fieldBlock("Enunciado");
     enunBlock.appendChild(
@@ -1063,6 +1068,7 @@
     function renderRespBlock() {
       respBlock.innerHTML = "";
       respBlock.classList.toggle("hidden", hasSubs(q));
+      renderGridLayout();
       if (hasSubs(q)) return;
       respBlock.appendChild(
         el("span", "review-field-label", "Resposta / gabarito")
@@ -1080,6 +1086,7 @@
     }
     renderRespBlock();
     grid.appendChild(respBlock);
+    renderGridLayout();
     body.appendChild(grid);
 
     var subnote = el(
@@ -1152,6 +1159,11 @@
     function toggleOpen() {
       card.classList.toggle("is-open");
       renderHeadMeta();
+      if (card.classList.contains("is-open")) {
+        grid.querySelectorAll(".mdf-area").forEach(function (area) {
+          if (typeof area._autoResize === "function") area._autoResize();
+        });
+      }
     }
 
     // expose for subCard add/delete to refresh parent head + resp + subs
@@ -1323,6 +1335,11 @@
     function toggleOpen() {
       wrap.classList.toggle("is-open");
       renderHeadMeta();
+      if (wrap.classList.contains("is-open")) {
+        wrap.querySelectorAll(".mdf-area").forEach(function (area) {
+          if (typeof area._autoResize === "function") area._autoResize();
+        });
+      }
     }
 
     renderPreview();
