@@ -519,13 +519,19 @@
   function gradeInput(value, opts) {
     opts = opts || {};
     var input = el("input", "grade-input");
-    input.type = "number";
-    input.step = "any";
-    input.min = "0";
-    input.value = value == null ? "" : value;
+    input.type = "text";
+    input.value = value == null ? "" : String(value).replace(".", ",");
     if (opts.placeholder) input.placeholder = opts.placeholder;
     input.addEventListener("input", function () {
-      var v = input.value === "" ? null : Number(input.value);
+      var val = input.value.replace(/\./g, ",");
+      val = val.replace(/[^0-9,]/g, "");
+      var parts = val.split(",");
+      if (parts.length > 2) {
+        val = parts[0] + "," + parts.slice(1).join("");
+      }
+      input.value = val;
+      var v = val === "" ? null : Number(val.replace(",", "."));
+      if (isNaN(v)) v = null;
       opts.onChange && opts.onChange(v);
     });
     return input;
@@ -739,7 +745,7 @@
     );
     els.meta.appendChild(
       numberMetaField("Nota final recebida", "nota_final", {
-        placeholder: "em branco se não corrigida",
+        placeholder: "9,5",
       })
     );
 
@@ -795,20 +801,38 @@
     var field = el("div", "review-meta-field");
     field.appendChild(metaLabel(label));
     var input = el("input", "meta-input");
-    input.type = "number";
-    input.step = opts.integer ? "1" : "any";
-    if (opts.min != null) input.min = String(opts.min);
-    if (opts.placeholder) input.placeholder = opts.placeholder;
-    input.value = prova[key] == null ? "" : prova[key];
-    input.addEventListener("input", function () {
-      if (input.value === "") {
-        prova[key] = null;
-      } else {
-        prova[key] = opts.integer
-          ? parseInt(input.value, 10)
-          : Number(input.value);
-      }
-    });
+    if (key === "nota_final") {
+      input.type = "text";
+      if (opts.placeholder) input.placeholder = opts.placeholder;
+      input.value = prova[key] == null ? "" : String(prova[key]).replace(".", ",");
+      input.addEventListener("input", function () {
+        var val = input.value.replace(/\./g, ",");
+        val = val.replace(/[^0-9,]/g, "");
+        var parts = val.split(",");
+        if (parts.length > 2) {
+          val = parts[0] + "," + parts.slice(1).join("");
+        }
+        input.value = val;
+        var v = val === "" ? null : Number(val.replace(",", "."));
+        if (isNaN(v)) v = null;
+        prova[key] = v;
+      });
+    } else {
+      input.type = "number";
+      input.step = opts.integer ? "1" : "any";
+      if (opts.min != null) input.min = String(opts.min);
+      if (opts.placeholder) input.placeholder = opts.placeholder;
+      input.value = prova[key] == null ? "" : prova[key];
+      input.addEventListener("input", function () {
+        if (input.value === "") {
+          prova[key] = null;
+        } else {
+          prova[key] = opts.integer
+            ? parseInt(input.value, 10)
+            : Number(input.value);
+        }
+      });
+    }
     field.appendChild(input);
     return field;
   }
@@ -943,7 +967,7 @@
       ptsWrap.appendChild(el("span", "review-grade-num-label", "pts"));
       ptsWrap.appendChild(
         gradeInput(q.pontuacao, {
-          placeholder: "0",
+          placeholder: "9,5",
           onChange: function (v) {
             q.pontuacao = v;
             renderHeadMeta();
@@ -1169,7 +1193,7 @@
       ptsWrap.appendChild(el("span", "review-grade-num-label", "pts"));
       ptsWrap.appendChild(
         gradeInput(sub.pontuacao, {
-          placeholder: "0",
+          placeholder: "9,5",
           onChange: function (v) {
             sub.pontuacao = v;
             renderHeadMeta();

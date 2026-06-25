@@ -267,3 +267,9 @@
   border-color: var(--color-accent);
   background: var(--color-accent-light);
 }
+
+.grade-input:focus::placeholder,
+.meta-input:focus::placeholder {
+  color: transparent;
+  opacity: 0;
+}
