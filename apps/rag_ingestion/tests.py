@@ -280,9 +280,10 @@ class SeedExamJsonsLoggingTests(SimpleTestCase):
         embeddings_mock,
         rebuild_mock,
     ):
-        from apps.rag_ingestion.embed import PROJECT_ROOT, seed_exam_jsons
+        from apps.rag_ingestion.embed import seed_exam_jsons
+        from settings.settings import BASE_DIR
 
-        json_file = PROJECT_ROOT / "input" / "converted_provas" / "calc.json"
+        json_file = BASE_DIR / "input" / "converted_provas" / "calc.json"
         find_mock.return_value = [json_file]
         fake_prova = Mock(materia="CÁLCULO")
         upsert_mock.return_value = (fake_prova, ["q1"], ["chunk text"])
@@ -356,3 +357,35 @@ class ResolveProfessorTests(SimpleTestCase):
         self.assertNotIn("[", result)
         self.assertNotIn("]", result)
         self.assertNotIn("@", result)
+
+
+class AdminRegistrationTests(SimpleTestCase):
+    def test_questao_is_registered(self):
+        from django.contrib import admin
+        self.assertIn(Questao, admin.site._registry)
+
+    def test_chunks_is_registered(self):
+        from django.contrib import admin
+        self.assertIn(Chunks, admin.site._registry)
+
+    def test_prova_is_registered(self):
+        from django.contrib import admin
+        self.assertIn(Prova, admin.site._registry)
+
+    def test_questao_admin_list_display(self):
+        from django.contrib import admin
+        model_admin = admin.site._registry[Questao]
+        self.assertIn("ordem", model_admin.list_display)
+        self.assertIn("pontuacao", model_admin.list_display)
+
+    def test_prova_admin_list_display(self):
+        from django.contrib import admin
+        model_admin = admin.site._registry[Prova]
+        self.assertIn("materia", model_admin.list_display)
+        self.assertIn("professor", model_admin.list_display)
+        self.assertIn("ano_semestre", model_admin.list_display)
+
+    def test_chunks_admin_raw_id_fields(self):
+        from django.contrib import admin
+        model_admin = admin.site._registry[Chunks]
+        self.assertIn("id_questao", model_admin.raw_id_fields)

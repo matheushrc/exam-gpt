@@ -43,7 +43,7 @@ Use only the commands needed for the task at hand:
 - `uv run python manage.py extract_exams`: batch-extract exam material (photo folders or PDFs of any kind --
   text-based or scanned) from `input/provas` into JSON files in `input/converted_provas`.
   Options: `--model gemini-3.5-flash` (default), `--concurrency 2`.
-- `GOOGLE_API_KEY="your-google-api-key" uv run python apps/rag_ingestion/seed_exams.py`: seed converted exams and rebuild `indexes/index.tvim`.
+- `uv run python manage.py seed_exams`: seed converted exams and rebuild `indexes/index.tvim`. Requires `GOOGLE_API_KEY` in the environment.
 - `uv run python manage.py runserver`: run Django locally when MongoDB is already available.
 - `uv run python manage.py test`: run tests.
 - `uv run python manage.py sync_schedule`: Download and cache UFFS schedule data locally. Run once per semester or when throttled.

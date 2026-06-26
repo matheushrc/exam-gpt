@@ -3,9 +3,10 @@ import json
 from pathlib import Path
 
 from apps.chat.settings import chat_settings
+from settings.settings import BASE_DIR
 
 CACHE_ROOT = Path(chat_settings.CACHE_ROOT)
-DOCENTES_CSV = Path(__file__).resolve().parents[2] / "datasets" / "docentes.csv"
+DOCENTES_CSV = BASE_DIR / "datasets" / "docentes.csv"
 
 
 def _load_docentes_mapping() -> dict[str, str]:

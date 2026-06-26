@@ -1,33 +1,25 @@
-# ruff: noqa: E402
 import json
 import os
-import sys
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
-import django
 import numpy as np
-from turbovec import IdMapIndex
-
-PROJECT_ROOT = Path(__file__).resolve().parents[2]
-sys.path.insert(0, str(PROJECT_ROOT))
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "settings.settings")
-django.setup()
-
 from google import genai
 from google.genai import types
 from loguru import logger
+from turbovec import IdMapIndex
 
 from apps.rag_ingestion.models import Chunks, Prova, Questao
 from apps.rag_ingestion.settings import embeddings_settings
+from settings.settings import BASE_DIR
 
-DEFAULT_JSON_ROOT = PROJECT_ROOT / "input" / "converted_provas"
+DEFAULT_JSON_ROOT = BASE_DIR / "input" / "converted_provas"
 INDEX_PATH = Path(embeddings_settings.INDEX_PATH)
 EMBEDDING_MODEL = embeddings_settings.EMBEDDING_MODEL
 EMBEDDING_DIMS = embeddings_settings.EMBEDDING_DIMS
 
-_DOCENTES_CSV = PROJECT_ROOT / "datasets" / "docentes.csv"
+_DOCENTES_CSV = BASE_DIR / "datasets" / "docentes.csv"
 
 
 def _load_email_to_name() -> dict[str, str]:
@@ -237,7 +229,7 @@ def seed_exam_jsons(
         prova, questoes, chunk_texts = upsert_exam(data)
         all_questoes.extend(questoes)
         all_chunk_texts.extend(chunk_texts)
-        logger.info(f"Loaded {json_file.relative_to(PROJECT_ROOT)} -> {prova.materia}")
+        logger.info(f"Loaded {json_file.relative_to(BASE_DIR)} -> {prova.materia}")
 
     logger.info(f"Generating embeddings for {len(all_chunk_texts)} questions...")
     embeddings = get_embeddings_batch(embedding_client, all_chunk_texts)
