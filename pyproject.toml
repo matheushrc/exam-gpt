@@ -25,7 +25,6 @@ dependencies = [
     "refinedoc>=1.0.1",
     "requests>=2.34.2",
     "ruff>=0.15.18",
-    "sqlite-vec>=0.1.9",
     "turbovec>=0.8.0",
     "ty>=0.0.51",
     "whitenoise>=6.12.0",

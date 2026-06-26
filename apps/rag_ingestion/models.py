@@ -47,6 +47,8 @@ class Questao(Model):
     )
 
     class Meta:
+        verbose_name = "Questão"
+        verbose_name_plural = "Questões"
         constraints: ClassVar[list] = [
             UniqueConstraint(fields=["ordem", "enunciado"], name="unique_questao"),
         ]
@@ -61,6 +63,7 @@ class Chunks(Model):
     turbo_id = PositiveIntegerField(null=True, blank=True)
 
     class Meta:
+        verbose_name_plural = "Chunks"
         constraints: ClassVar[list] = [
             UniqueConstraint(fields=["id_questao"], name="unique_chunk_per_questao"),
         ]
@@ -91,6 +94,8 @@ class Prova(Model):
     objects = Manager()
 
     class Meta:
+        verbose_name = "Prova"
+        verbose_name_plural = "Provas"
         constraints: ClassVar[list] = [
             UniqueConstraint(
                 fields=["materia", "ano_semestre", "numero_avaliacao"],
