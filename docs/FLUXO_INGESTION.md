@@ -7,7 +7,7 @@ Existem dois caminhos de entrada, mas ambos convergem para o mesmo núcleo de pe
 ## Caminho 1 — Upload pelo SPA (tempo real)
 
 ```
-Usuário faz upload (PDF ou fotos)
+Usuário faz upload (PDF, fotos, ou texto)
         │
         ▼
 POST /api/provas/extract/   (ProvaExtractAPIView)
@@ -21,6 +21,11 @@ POST /api/provas/extract/   (ProvaExtractAPIView)
         │                     └─ escaneado?    → renderiza páginas como JPEG 300dpi
         │                           │
         │                    extract_exam_from_content(content, inference_type)
+        │
+        ├─ arquivo de texto ──────► extract_exam_from_text_file(text)
+        │   (.txt, .md, .tex)                │
+        │                    Decodifica UTF-8, passa direto para
+        │                    extract_exam_from_content(text, "TEXT")
         │
         └─ fotos/imagens ──► extract_exam_from_images(images)
                                     │
@@ -50,12 +55,12 @@ POST /api/provas/           (ProvaSaveAPIView)
 
 ```
 input/provas/
-  └─ <pasta ou PDF>
+  └─ <pasta, PDF, ou arquivo de texto>
         │
         ▼
 manage.py extract_exams                 [management/commands/extract_exams.py]
   Para cada arquivo/pasta:
-    └─ extract_exam_from_pdf() ou extract_exam_from_images()
+    └─ extract_exam_from_pdf(), extract_exam_from_text_file(), ou extract_exam_from_images()
        (mesmo fluxo do Caminho 1 até o Gemini)
     └─ Salva resultado em input/converted_provas/<nome>.json
         │
