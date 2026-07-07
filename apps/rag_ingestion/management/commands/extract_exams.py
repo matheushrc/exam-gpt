@@ -27,6 +27,7 @@ from apps.rag_ingestion.extract import (
     ProvaComNome,
     extract_exam_from_images,
     extract_exam_from_pdf,
+    extract_exam_from_text_file,
 )
 from apps.rag_ingestion.settings import embeddings_settings
 from apps.rag_ingestion.utils import load_images_from_folder
@@ -35,6 +36,7 @@ INPUT_ROOT = Path(embeddings_settings.INPUT_ROOT)
 OUTPUT_ROOT = Path(embeddings_settings.OUTPUT_ROOT)
 IMAGE_EXTENSIONS = {".jpg", ".jpeg", ".png"}
 PDF_EXTENSION = ".pdf"
+TEXT_EXTENSIONS = {".txt", ".md", ".tex"}
 
 
 def safe_segment(value: str) -> str:
@@ -90,6 +92,17 @@ def find_exam_pdfs(input_root: Path) -> list[Path]:
     return sorted(pdfs, key=lambda p: p.relative_to(input_root).as_posix())
 
 
+def find_exam_text_files(input_root: Path) -> list[Path]:
+    """Standalone plain-text exam files (.txt/.md/.tex) anywhere under input_root."""
+    text_files = [
+        Path(folder) / f
+        for folder, _, files in os.walk(input_root)
+        for f in files
+        if Path(f).suffix.lower() in TEXT_EXTENSIONS
+    ]
+    return sorted(text_files, key=lambda p: p.relative_to(input_root).as_posix())
+
+
 async def _process_folder(
     folder: Path,
     model_name: str,
@@ -127,10 +140,28 @@ async def _process_pdf(
         return out
 
 
+async def _process_text_file(
+    text_path: Path,
+    model_name: str,
+    semaphore: asyncio.Semaphore,
+    stdout,
+) -> Path:
+    async with semaphore:
+        stdout.write(f"  Extracting {text_path.name}...")
+        exam = await extract_exam_from_text_file(
+            text_path.read_text(encoding="utf-8"),
+            source_hint=text_path.relative_to(INPUT_ROOT).as_posix(),
+            model_name=model_name,
+        )
+        out = write_exam_json(exam, OUTPUT_ROOT)
+        stdout.write(f"  -> {out}")
+        return out
+
+
 class Command(BaseCommand):
     help = (
-        "Batch-extract exam material (photo folders or PDFs of any kind) "
-        "from input/provas to input/converted_provas."
+        "Batch-extract exam material (photo folders, PDFs of any kind, or plain "
+        "text files) from input/provas to input/converted_provas."
     )
 
     def add_arguments(self, parser):
@@ -144,15 +175,26 @@ class Command(BaseCommand):
 
         folders = find_exam_folders(INPUT_ROOT)
         pdfs = find_exam_pdfs(INPUT_ROOT)
-        if not folders and not pdfs:
+        text_files = find_exam_text_files(INPUT_ROOT)
+        if not folders and not pdfs and not text_files:
             self.stderr.write(f"No exam material found under {INPUT_ROOT}.")
             return
 
-        self.stdout.write(f"Found {len(folders)} folder(s) and {len(pdfs)} PDF(s).")
+        self.stdout.write(
+            f"Found {len(folders)} folder(s), {len(pdfs)} PDF(s), and "
+            f"{len(text_files)} text file(s)."
+        )
         semaphore = asyncio.Semaphore(options["concurrency"])
-        tasks = [
-            _process_folder(f, options["model"], semaphore, self.stdout)
-            for f in folders
-        ] + [_process_pdf(p, options["model"], semaphore, self.stdout) for p in pdfs]
+        tasks = (
+            [
+                _process_folder(f, options["model"], semaphore, self.stdout)
+                for f in folders
+            ]
+            + [_process_pdf(p, options["model"], semaphore, self.stdout) for p in pdfs]
+            + [
+                _process_text_file(t, options["model"], semaphore, self.stdout)
+                for t in text_files
+            ]
+        )
         results = asyncio.run(asyncio.gather(*tasks))
         self.stdout.write(self.style.SUCCESS(f"Wrote {len(results)} JSON file(s)."))

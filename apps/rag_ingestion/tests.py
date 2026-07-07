@@ -14,6 +14,10 @@ from turbovec import IdMapIndex
 
 from apps.rag_ingestion.agents.Google import GoogleAgent
 from apps.rag_ingestion.extract import _make_agent, extract_exam_from_text_file
+from apps.rag_ingestion.management.commands.extract_exams import (
+    find_exam_text_files,
+    _process_text_file,
+)
 from apps.rag_ingestion.markdown_normalize import normalize_extracted_markdown
 from apps.rag_ingestion.prompts.prova import EXAM_PROMPT
 from apps.rag_ingestion.schemas.prova import Questao as SchemaQuestao
@@ -465,3 +469,81 @@ class ProvaExtractAPIViewTextFileTests(TestCase):
         )
 
         self.assertEqual(response.status_code, 500)
+
+
+class ExtractExamsTextFileDiscoveryTests(SimpleTestCase):
+    def test_find_exam_text_files_matches_txt_md_tex(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            root = Path(tmpdir)
+            nested = root / "calculo"
+            nested.mkdir()
+            txt = nested / "prova1.txt"
+            txt.write_text("conteudo", encoding="utf-8")
+            md = nested / "prova2.md"
+            md.write_text("conteudo", encoding="utf-8")
+            tex = nested / "prova3.tex"
+            tex.write_text("conteudo", encoding="utf-8")
+            (nested / "ignored.pdf").write_bytes(b"%PDF-1.4")
+            (nested / "ignored.jpg").write_bytes(b"\xff\xd8\xff")
+
+            found = find_exam_text_files(root)
+
+            self.assertEqual(found, sorted([txt, md, tex]))
+
+    def test_find_exam_text_files_returns_empty_list_when_none_found(self):
+        with tempfile.TemporaryDirectory() as tmpdir:
+            self.assertEqual(find_exam_text_files(Path(tmpdir)), [])
+
+
+class ProcessTextFileTests(SimpleTestCase):
+    def test_process_text_file_reads_and_writes_json(self):
+        import asyncio
+
+        class FakeExamFile:
+            disciplina = "calculo"
+            nome_arquivo = "2026-05-04_np1_professor.json"
+
+        class FakeExam:
+            arquivo = FakeExamFile()
+
+            def model_dump(self, mode="json"):
+                return {"arquivo": {"nome_arquivo": self.arquivo.nome_arquivo}}
+
+        captured = {}
+
+        async def fake_extract_exam_from_text_file(text, **kwargs):
+            captured["text"] = text
+            captured["kwargs"] = kwargs
+            return FakeExam()
+
+        with tempfile.TemporaryDirectory() as tmpdir:
+            input_root = Path(tmpdir) / "input"
+            output_root = Path(tmpdir) / "output"
+            input_root.mkdir()
+            source = input_root / "prova1.txt"
+            source.write_text("Questao 1: 2+2?", encoding="utf-8")
+
+            with patch(
+                "apps.rag_ingestion.management.commands.extract_exams.INPUT_ROOT",
+                input_root,
+            ), patch(
+                "apps.rag_ingestion.management.commands.extract_exams.OUTPUT_ROOT",
+                output_root,
+            ), patch(
+                "apps.rag_ingestion.management.commands.extract_exams.extract_exam_from_text_file",
+                side_effect=fake_extract_exam_from_text_file,
+            ):
+                out = asyncio.run(
+                    _process_text_file(
+                        source, "gemini-test", asyncio.Semaphore(1), _NullStdout()
+                    )
+                )
+
+        self.assertEqual(captured["text"], "Questao 1: 2+2?")
+        self.assertEqual(captured["kwargs"]["source_hint"], "prova1.txt")
+        self.assertEqual(out.name, "2026-05-04_np1_professor.json")
+
+
+class _NullStdout:
+    def write(self, *args, **kwargs):
+        pass
