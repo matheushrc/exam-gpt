@@ -37,6 +37,20 @@ docker compose up --build
 
 Acesse `http://localhost:8000` (ou a porta configurada em `PORT` no `.env`).
 
+## Dados de horário (recomendado)
+
+Os seletores de semestre/professor no chat dependem de um cache local de
+horários da UFFS, que não vem no repositório. Com os containers no ar, rode
+uma vez:
+
+```bash
+docker compose exec provas-gpt python manage.py sync_schedule
+```
+
+Sem isso o app funciona normalmente, mas esses seletores ficam vazios. Só
+precisa rodar de novo quando trocar de semestre ou se os dados ficarem
+desatualizados.
+
 ## Testando de verdade (golden path)
 
 1. Abra a tela de upload e envie uma prova de exemplo (PDF ou fotos).
