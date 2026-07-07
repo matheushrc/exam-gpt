@@ -8,10 +8,11 @@ include `apps/rag_ingestion/`, `apps/rag_search/`, and `apps/schedule/`. Shared
 HTML templates are in `templates/`; app-specific templates may live inside each
 app, such as `apps/schedule/templates/`. Mongo migration snapshots are stored in
 `mongo_migrations/`. Research notes are numbered in `research/`, product ideas
-live in `IDEAS.md`, and sample inputs live in `input/`. Prompt assets live as
+live in `docs/IDEAS.md`, and sample inputs live in `input/`. Prompt assets live as
 Python modules near their agents, such as `apps/rag_ingestion/prompts/` and
-`apps/chat/prompts/`. Ingestion flow notes and the presentation deck live
-under `docs/` (`docs/FLUXO_INGESTION.md`, `docs/apresentacao.pdf`). The
+`apps/chat/prompts/`. Ingestion flow notes, known open questions, and the
+presentation deck live under `docs/` (`docs/FLUXO_INGESTION.md`,
+`docs/CONCERNS.md`, `docs/apresentacao.pdf`). The
 docente dataset stays at `datasets/docentes.csv` — it's read by
 `apps/rag_ingestion/embed.py` and `apps/chat/cache.py` at that hardcoded
 path.
@@ -122,7 +123,7 @@ reporting the work as complete. For API or Docker-dependent changes, verify the
 behavior through Docker Compose and an actual request such as `curl` when
 practical.
 
-When a concern in `CONCERNS.md` gets resolved, delete that entry instead of
+When a concern in `docs/CONCERNS.md` gets resolved, delete that entry instead of
 marking it "RESOLVED" or leaving a note about the fix — the git history
 already has that. Keeping resolved entries around just makes the file grow
 unboundedly, which costs tokens every time it's read.
@@ -130,6 +131,6 @@ unboundedly, which costs tokens every time it's read.
 Whenever a code change affects the architecture or behavior described in
 `DESIGN.md`, update `DESIGN.md` in the same change — don't let it drift out
 of sync with the actual codebase. Likewise, if a change reveals a new issue
-worth tracking, add it to `CONCERNS.md`; if it resolves an existing one,
+worth tracking, add it to `docs/CONCERNS.md`; if it resolves an existing one,
 delete that entry (per the rule above). Do this proactively as part of the
 change, not only when asked.

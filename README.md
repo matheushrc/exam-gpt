@@ -86,8 +86,8 @@ docker compose exec provas-gpt python manage.py sync_schedule
 
 ## Mais documentação
 
-- [`IDEAS.md`](IDEAS.md) — backlog e ideias de produto
-- [`CONCERNS.md`](CONCERNS.md) — questões em aberto conhecidas
+- [`docs/IDEAS.md`](docs/IDEAS.md) — backlog e ideias de produto
+- [`docs/CONCERNS.md`](docs/CONCERNS.md) — questões em aberto conhecidas
 - [`DESIGN.md`](DESIGN.md) — sistema de design e tokens de UI
 - [`docs/FLUXO_INGESTION.md`](docs/FLUXO_INGESTION.md) — fluxo completo de
   ingestão, do input ao vetor indexado
