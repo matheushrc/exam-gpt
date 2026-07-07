@@ -18,6 +18,7 @@ from apps.rag_ingestion.extract import (
 )
 
 TEXT_EXTENSIONS = (".txt", ".md", ".tex")
+MAX_UPLOAD_SIZE_BYTES = 20 * 1024 * 1024  # matches the upload page's "até 20 MB" copy
 
 
 class ProvaExtractAPIView(APIView):
@@ -32,6 +33,11 @@ class ProvaExtractAPIView(APIView):
         try:
             files = request.FILES.getlist("files")
             if files:
+                oversized = [f.name for f in files if f.size > MAX_UPLOAD_SIZE_BYTES]
+                if oversized:
+                    raise ValueError(
+                        f"Arquivo(s) excedem o limite de 20 MB: {', '.join(oversized)}"
+                    )
                 if len(files) == 1 and files[0].name.lower().endswith(".pdf"):
                     pdf_file = files[0]
                     exam = asyncio.run(

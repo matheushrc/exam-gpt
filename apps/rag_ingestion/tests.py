@@ -471,6 +471,48 @@ class ProvaExtractAPIViewTextFileTests(TestCase):
         self.assertEqual(response.status_code, 500)
 
 
+class ProvaExtractAPIViewFileSizeTests(TestCase):
+    def test_file_over_20mb_returns_400_without_calling_extraction(self):
+        big_file = SimpleUploadedFile(
+            "prova.pdf",
+            b"x" * (20 * 1024 * 1024 + 1),
+            content_type="application/pdf",
+        )
+
+        with patch("apps.rag_ingestion.views.extract_exam_from_pdf") as mock_extract:
+            response = self.client.post(
+                "/api/provas/extract/", data={"files": big_file}
+            )
+
+        self.assertEqual(response.status_code, 400)
+        self.assertIn("prova.pdf", response.json()["detail"])
+        mock_extract.assert_not_called()
+
+    def test_file_at_exactly_20mb_is_accepted(self):
+        class FakeExam:
+            def model_dump(self, mode="json"):
+                return {"arquivo": {"nome_arquivo": "fake.json"}}
+
+        exact_file = SimpleUploadedFile(
+            "prova.pdf",
+            b"x" * (20 * 1024 * 1024),
+            content_type="application/pdf",
+        )
+
+        async def fake_extract_exam_from_pdf(*args, **kwargs):
+            return FakeExam()
+
+        with patch(
+            "apps.rag_ingestion.views.extract_exam_from_pdf",
+            side_effect=fake_extract_exam_from_pdf,
+        ):
+            response = self.client.post(
+                "/api/provas/extract/", data={"files": exact_file}
+            )
+
+        self.assertEqual(response.status_code, 200)
+
+
 class ExtractExamsTextFileDiscoveryTests(SimpleTestCase):
     def test_find_exam_text_files_matches_txt_md_tex(self):
         with tempfile.TemporaryDirectory() as tmpdir:
