@@ -12,7 +12,7 @@ from pydantic_ai.models.google import GoogleModel
 from turbovec import IdMapIndex
 
 from apps.rag_ingestion.agents.Google import GoogleAgent
-from apps.rag_ingestion.extract import _make_agent
+from apps.rag_ingestion.extract import _make_agent, extract_exam_from_text_file
 from apps.rag_ingestion.markdown_normalize import normalize_extracted_markdown
 from apps.rag_ingestion.prompts.prova import EXAM_PROMPT
 from apps.rag_ingestion.schemas.prova import Questao as SchemaQuestao
@@ -389,3 +389,36 @@ class AdminRegistrationTests(SimpleTestCase):
         from django.contrib import admin
         model_admin = admin.site._registry[Chunks]
         self.assertIn("id_questao", model_admin.raw_id_fields)
+
+
+class ExtractExamFromTextFileTests(SimpleTestCase):
+    def test_delegates_to_extract_exam_from_content_with_text_inference_type(self):
+        import asyncio
+
+        captured = {}
+
+        async def fake_extract_exam_from_content(content, inference_type, **kwargs):
+            captured["content"] = content
+            captured["inference_type"] = inference_type
+            captured["kwargs"] = kwargs
+            return "sentinel-result"
+
+        with patch(
+            "apps.rag_ingestion.extract.extract_exam_from_content",
+            side_effect=fake_extract_exam_from_content,
+        ):
+            result = asyncio.run(
+                extract_exam_from_text_file(
+                    "conteudo da prova em texto",
+                    source_hint="prova.txt",
+                    model_name="gemini-test",
+                    api_key="fake-key",
+                )
+            )
+
+        self.assertEqual(result, "sentinel-result")
+        self.assertEqual(captured["content"], "conteudo da prova em texto")
+        self.assertEqual(captured["inference_type"], "TEXT")
+        self.assertEqual(captured["kwargs"]["source_hint"], "prova.txt")
+        self.assertEqual(captured["kwargs"]["model_name"], "gemini-test")
+        self.assertEqual(captured["kwargs"]["api_key"], "fake-key")

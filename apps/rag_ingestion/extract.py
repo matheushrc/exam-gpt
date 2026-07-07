@@ -70,7 +70,7 @@ async def extract_exam_from_content(
 
     base_prompt = EXTRACTION_USER_PROMPT.format(source_hint=source_hint)
     if inference_type == "TEXT":
-        user_prompt = f"{base_prompt}\n\n## Conteúdo extraído do PDF\n\n{content}"
+        user_prompt = f"{base_prompt}\n\n## Conteúdo extraído\n\n{content}"
         result = await client.get_inference_async(agent=agent, user_prompt=user_prompt)
     else:
         images = content if isinstance(content, list) else [content]
@@ -116,4 +116,18 @@ async def extract_exam_from_images(
     (e.g. a folder of photographed pages, or the camera-capture upload flow)."""
     return await extract_exam_from_content(
         images, "IMAGE", source_hint=source_hint, model_name=model_name, api_key=api_key
+    )
+
+
+async def extract_exam_from_text_file(
+    text: str,
+    *,
+    source_hint: str = "",
+    model_name: str = DEFAULT_EXTRACTION_MODEL,
+    api_key: str | None = None,
+) -> ProvaComNome:
+    """Single entry point for "user uploaded a plain text exam (.txt/.md/.tex)".
+    No PDF parsing needed -- the content is already text."""
+    return await extract_exam_from_content(
+        text, "TEXT", source_hint=source_hint, model_name=model_name, api_key=api_key
     )
