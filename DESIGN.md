@@ -364,16 +364,16 @@ math is intentionally not rendered because Brazilian currency values such as
 
 ## 10. File map
 
-| Path                                                  | Contains                                                       |
-| ------------------------------------------------------ | --------------------------------------------------------------- |
-| `design/README.md`                                    | Why the original mockup was retired (pointer note)             |
-| `static/css/tokens.css`                          | All design tokens (variants × modes)                            |
-| `static/css/base.css`                            | Resets, buttons, forms, chat-bubble defaults, utils             |
-| `static/js/theme.js`                             | Variant/mode switching, persistence, system sync                |
-| `static/js/shell-core.js`                        | Settings store, CSRF helper, `springWidth` (`window.PGShell`)   |
-| `static/js/sidebar-toggle.js`                    | Sidebar collapse/expand                                         |
-| `static/js/settings-modal.js`                    | Model-settings modal                                            |
-| `static/js/user-menu.js`                         | Sidebar-footer appearance menu                                  |
+| Path                                                  | Contains                                                        |
+| ------------------------------------------------------| --------------------------------------------------------------- |
+| `design/README.md`                                    | Why the original mockup was retired (pointer note)              |
+| `static/css/tokens.css`                               | All design tokens (variants × modes)                            |
+| `static/css/base.css`                                 | Resets, buttons, forms, chat-bubble defaults, utils             |
+| `static/js/theme.js`                                  | Variant/mode switching, persistence, system sync                |
+| `static/js/shell-core.js`                             | Settings store, CSRF helper, `springWidth` (`window.PGShell`)   |
+| `static/js/sidebar-toggle.js`                         | Sidebar collapse/expand                                         |
+| `static/js/settings-modal.js`                         | Model-settings modal                                            |
+| `static/js/user-menu.js`                              | Sidebar-footer appearance menu                                  |
 | `templates/base.html`                                 | Document shell, fonts, token/script wiring, blocks              |
 | `templates/partials/_sidebar.html` etc.               | Shared shell markup (sidebar, user menu, settings)              |
 | `apps/chat/static/chat/css/sidebar.css`               | Sidebar shell + collapse                                        |
