@@ -10,7 +10,11 @@ app, such as `apps/schedule/templates/`. Mongo migration snapshots are stored in
 `mongo_migrations/`. Research notes are numbered in `research/`, product ideas
 live in `IDEAS.md`, and sample inputs live in `input/`. Prompt assets live as
 Python modules near their agents, such as `apps/rag_ingestion/prompts/` and
-`apps/chat/prompts/`.
+`apps/chat/prompts/`. Ingestion flow notes and the presentation deck live
+under `docs/` (`docs/FLUXO_INGESTION.md`, `docs/apresentacao.pdf`). The
+docente dataset stays at `datasets/docentes.csv` — it's read by
+`apps/rag_ingestion/embed.py` and `apps/chat/cache.py` at that hardcoded
+path.
 
 ## Build, Test, and Development Commands
 

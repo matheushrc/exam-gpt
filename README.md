@@ -1,47 +1,83 @@
 # Exam GPT
 
-Projeto Django para extrair dados estruturados de provas e usar embeddings para
-busca e apoio ao estudo.
+Projeto Django para extrair dados estruturados de provas e usar embeddings
+para busca e apoio ao estudo (RAG). O aluno faz upload de uma prova (PDF ou
+fotos), o sistema extrai as questões estruturadas via Gemini e o chat responde
+perguntas sobre o conteúdo das provas já enviadas, citando as fontes.
 
-As ideias de produto e notas de funcionamento ficam em [IDEAS.md](IDEAS.md).
+## Pré-requisitos
 
-## Configuração e Seed do Banco
+- Docker e Docker Compose
 
-### Pré-requisitos
+## Setup
 
-- MongoDB rodando em `localhost:27017` (via `docker compose up mongo -d`)
-- `GOOGLE_API_KEY` definida no ambiente (ou no arquivo `.env`)
+1. Copie o arquivo de exemplo de variáveis de ambiente:
 
-### Seed das provas (a partir do terminal local)
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Gere um `SECRET_KEY` e cole no `.env`:
+
+   ```bash
+   python3 -c "import secrets; print(secrets.token_urlsafe(50))"
+   ```
+
+3. Gere uma `GOOGLE_API_KEY` própria em
+   [aistudio.google.com/api-keys](https://aistudio.google.com/api-keys) e cole
+   no `.env`. Sem essa chave, o upload de provas e o chat não respondem —
+   isso é esperado, não um bug: o projeto não distribui uma chave
+   compartilhada.
+
+## Rodando
 
 ```bash
-# 1. Suba somente o MongoDB (se ainda não estiver rodando)
-docker compose up mongo -d
-
-# 2. Execute o seed — lê os JSONs em input/converted_provas/ e reconstrói o índice
-GOOGLE_API_KEY="sua-chave" uv run python manage.py seed_exams
+docker compose up --build
 ```
 
-Se a chave já estiver no `.env`, você pode carregá-la antes:
+Acesse `http://localhost:8000` (ou a porta configurada em `PORT` no `.env`).
+
+## Testando de verdade (golden path)
+
+1. Abra a tela de upload e envie uma prova de exemplo (PDF ou fotos).
+2. Aguarde a extração terminar — a prova aparece com as questões estruturadas.
+3. Abra o chat e pergunte sobre o conteúdo da prova enviada.
+
+Esse fluxo não depende de rodar `seed_exams`/`extract_exams` nem de ter dados
+pré-carregados — é a forma mais rápida de comprovar a integração com a IA.
+
+## Avançado (opcional)
+
+Para processar um lote de provas já salvas localmente em `input/provas/`
+(imagens ou PDFs, com ou sem texto extraível):
 
 ```bash
-set -a && source .env && set +a
+uv run python manage.py extract_exams
 uv run python manage.py seed_exams
 ```
 
-O script conecta ao MongoDB em `localhost:27017` (padrão, configurável via `MONGO_HOST`/`MONGO_PORT` no `.env`) e regrava o índice vetorial em `indexes/index.tvim`.
+Essas duas rotinas usam a `GOOGLE_API_KEY` de verdade e consomem cota real da
+API — evite rodá-las repetidamente sem necessidade.
 
----
+## Troubleshooting
 
-## Checklist — Requisitos do Projeto
+- **Porta já em uso:** mude `PORT` no `.env` antes de subir o compose, ou pare
+  o processo que já está usando a porta configurada.
+- **Mongo "connection refused" no primeiro `up`:** o container do app pode
+  subir antes do Mongo ficar pronto para aceitar conexões; rode
+  `docker compose up --build` novamente ou aguarde alguns segundos e recarregue
+  a página.
+- **Upload/chat não respondem ou retornam erro silencioso:** confira se
+  `GOOGLE_API_KEY` está preenchida no `.env` e é uma chave válida gerada em
+  [aistudio.google.com/api-keys](https://aistudio.google.com/api-keys) — sem
+  ela, as chamadas ao Gemini falham.
+- **`.env` não é lido pelo compose:** confirme que o arquivo `.env` existe na
+  raiz do repo (não só o `.env.example`) antes de rodar `docker compose up`.
 
-- ⚠️ Banco de Dados (≥ 4 entidades + CRUD) — 3 entidades ativas: `Questao`, `Chunks`, `Prova` (`Aluno`/`RespostaAluno` comentados)
-- ✅ Metodologia ágil (SCRUM) — sprints em `docs/`, backlog em `IDEAS.md`
-- ✅ Controle de versão (GitHub) — repositório git com commits convencionais
-- ✅ Páginas de erro personalizadas (404/500) — `templates/404.html` e `500.html`
-- ✅ Testes automatizados (≥ 1) — testes em `rag_search`, `chat` e `rag_ingestion`
-- ✅ Integração com API externa — Google Gemini + horários UFFS (`HORARIO_ENDPOINT`)
-- ✅ Upload de provas dos alunos — `apps/upload/`
-- ✅ Chatbot com RAG utilizando as questões dos alunos — `apps/chat/` + `apps/rag_search/`
+## Mais documentação
 
-**Pendente:** descomentar `Aluno`/`RespostaAluno` (ou criar outra entidade) para atingir ≥ 4 entidades
+- [`IDEAS.md`](IDEAS.md) — backlog e ideias de produto
+- [`CONCERNS.md`](CONCERNS.md) — questões em aberto conhecidas
+- [`DESIGN.md`](DESIGN.md) — sistema de design e tokens de UI
+- [`docs/FLUXO_INGESTION.md`](docs/FLUXO_INGESTION.md) — fluxo completo de
+  ingestão, do input ao vetor indexado
