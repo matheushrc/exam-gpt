@@ -11,7 +11,13 @@ from apps.rag_ingestion.embed import (
     rebuild_vector_index,
     upsert_exam,
 )
-from apps.rag_ingestion.extract import extract_exam_from_images, extract_exam_from_pdf
+from apps.rag_ingestion.extract import (
+    extract_exam_from_images,
+    extract_exam_from_pdf,
+    extract_exam_from_text_file,
+)
+
+TEXT_EXTENSIONS = (".txt", ".md", ".tex")
 
 
 class ProvaExtractAPIView(APIView):
@@ -34,6 +40,17 @@ class ProvaExtractAPIView(APIView):
                         )
                     )
                     file_names = [pdf_file.name]
+                elif len(files) == 1 and files[0].name.lower().endswith(
+                    TEXT_EXTENSIONS
+                ):
+                    text_file = files[0]
+                    exam = asyncio.run(
+                        extract_exam_from_text_file(
+                            text_file.read().decode("utf-8"),
+                            source_hint=text_file.name,
+                        )
+                    )
+                    file_names = [text_file.name]
                 else:
                     images = [f.read() for f in files]
                     file_names = [f.name for f in files]
@@ -53,6 +70,13 @@ class ProvaExtractAPIView(APIView):
                 )
             else:
                 raise ValueError("No files or camera images provided.")
+        except UnicodeDecodeError as exc:
+            # UnicodeDecodeError is a ValueError subclass; caught here (before the
+            # ValueError branch below) so a bad-encoding upload returns 500, not 400.
+            logger.exception("Unexpected error during exam extraction")
+            return Response(
+                {"detail": f"Erro inesperado ao extrair a prova: {exc}"}, status=500
+            )
         except (ValueError, RuntimeError) as exc:
             logger.warning(f"Exam extraction failed: {exc}")
             return Response({"detail": str(exc)}, status=400)

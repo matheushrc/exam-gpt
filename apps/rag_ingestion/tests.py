@@ -3,6 +3,7 @@ import tempfile
 from pathlib import Path
 from unittest.mock import Mock, patch
 
+from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import SimpleTestCase
 from django.test import TestCase
 import numpy as np
@@ -422,3 +423,45 @@ class ExtractExamFromTextFileTests(SimpleTestCase):
         self.assertEqual(captured["kwargs"]["source_hint"], "prova.txt")
         self.assertEqual(captured["kwargs"]["model_name"], "gemini-test")
         self.assertEqual(captured["kwargs"]["api_key"], "fake-key")
+
+
+class ProvaExtractAPIViewTextFileTests(TestCase):
+    def test_single_text_file_routes_to_extract_exam_from_text_file(self):
+        class FakeExam:
+            def model_dump(self, mode="json"):
+                return {"arquivo": {"nome_arquivo": "fake.json"}}
+
+        captured = {}
+
+        async def fake_extract_exam_from_text_file(text, **kwargs):
+            captured["text"] = text
+            captured["kwargs"] = kwargs
+            return FakeExam()
+
+        text_file = SimpleUploadedFile(
+            "prova.txt", "Questao 1: 2+2?".encode("utf-8"), content_type="text/plain"
+        )
+
+        with patch(
+            "apps.rag_ingestion.views.extract_exam_from_text_file",
+            side_effect=fake_extract_exam_from_text_file,
+        ):
+            response = self.client.post(
+                "/api/provas/extract/", data={"files": text_file}
+            )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()["file_names"], ["prova.txt"])
+        self.assertEqual(captured["text"], "Questao 1: 2+2?")
+        self.assertEqual(captured["kwargs"]["source_hint"], "prova.txt")
+
+    def test_non_utf8_text_file_returns_500(self):
+        text_file = SimpleUploadedFile(
+            "prova.txt", b"\xff\xfe\x00\x01", content_type="text/plain"
+        )
+
+        response = self.client.post(
+            "/api/provas/extract/", data={"files": text_file}
+        )
+
+        self.assertEqual(response.status_code, 500)
